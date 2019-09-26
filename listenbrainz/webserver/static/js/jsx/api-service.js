@@ -84,6 +84,28 @@ export default class APIService {
     return result.user_token;
   }
   
+  async getOdysseyPlaylist(startTrack, endTrack, steps) {
+    
+    if(isNil(startTrack) || isNil(endTrack)) {
+      throw new SyntaxError('Expected a startTrack and an endTrack');
+    }
+
+    let query = `${this.APIBaseURI}/odyssey/${startTrack}/${endTrack}`;
+
+    if(!isNil(steps) && isFinite(Number(steps))){
+      query += `?steps=${steps}`
+    }
+
+    const response = await fetch(query, {
+      accept: 'application/json',
+      method: "GET"
+    })
+    this.checkStatus(response);
+    const result = await response.json();
+    
+    return result.payload.listens
+  }
+  
   checkStatus(response) {
     if (response.status >= 200 && response.status < 300) {
       return;
