@@ -20,7 +20,7 @@ class MusicalOdyssey extends React.Component {
       direction: "down",
       startTrack: "",
       endTrack: "",
-      numberOfSteps: ""
+      numberOfSteps: 25
     };
     this.handleCurrentListenChange = this.handleCurrentListenChange.bind(this);
     this.handleSpotifyAccountError = this.handleSpotifyAccountError.bind(this);
@@ -93,7 +93,7 @@ class MusicalOdyssey extends React.Component {
   handleInputChange(event) {
     const target = event.target;
     const value = target.type === 'checkbox' ? target.checked : target.value;
-    const name = target.name;
+    const name = target.id;
 
     this.setState({
       [name]: value
@@ -134,38 +134,51 @@ class MusicalOdyssey extends React.Component {
             <h3>A musical odyssey</h3>
 
             {!this.state.listens.length &&
-              <div className="lead text-center">
-                  <p>Enter two tracks' MBID to create a playlist with X steps in-between</p>
-                  <form onSubmit={this.handleSubmit}>
-                    <label>
-                        Start track:
-                        <input
-                        name="startTrack"
-                        type="text"
-                        value={this.state.startTrack}
-                        onChange={this.handleInputChange} />
-                    </label>
-                    <br />
-                    <label>
-                        Number of steps:
-                        <input
-                        name="numberOfSteps"
-                        type="number"
-                        value={this.state.numberOfSteps}
-                        onChange={this.handleInputChange} />
-                    </label>
-                    <br />
-                    <label>
-                        End track:
-                        <input
-                        name="endTrack"
-                        type="text"
-                        value={this.state.endTrack}
-                        onChange={this.handleInputChange} />
-                    </label>
-                    <input type="submit" value="Submit" />
-                </form>
-              </div>
+            <form onSubmit={this.handleSubmit}>
+                <p>Enter two tracks' MBID to create a playlist with X steps in-between</p>
+                <table className="table table-border table-striped">
+                    <tbody>
+                    <tr>
+                        <td><label for="startTrack">Start track:</label></td>
+                        <td>
+                            <input
+                            className="form-control"
+                            id="startTrack"
+                            type="text"
+                            value={this.state.startTrack}
+                            onChange={this.handleInputChange} />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><label for="endTrack">End track:</label></td>
+                        <td>
+                            <input
+                            className="form-control"
+                            id="endTrack"
+                            type="text"
+                            value={this.state.endTrack}
+                            onChange={this.handleInputChange} />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><label for="numberOfSteps">Number of tracks:</label></td>
+                        <td>
+                            <input
+                            className="form-control"
+                                id="numberOfSteps"
+                                type="number"
+                                value={this.state.numberOfSteps}
+                                onChange={this.handleInputChange} />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colSpan={2}>
+                            <input className="btn btn-block btn-lg btn-primary" type="submit" value="Take me on an odyssey"/>
+                        </td>
+                    </tr>
+                  </tbody>
+                </table>
+            </form>
             }
             {this.state.listens.length > 0 &&
               <div>
