@@ -36,7 +36,7 @@ export default class APIService {
       accept: 'application/json',
       method: "GET"
     })
-    this.checkStatus(response);
+    await this.checkStatus(response);
     const result = await response.json();
     
     return result.payload.listens
@@ -71,7 +71,7 @@ export default class APIService {
       accept: 'application/json',
       method: "GET"
     })
-    this.checkStatus(response);
+    await this.checkStatus(response);
     const result = await response.json();
     
     return result.payload.listens
@@ -79,7 +79,7 @@ export default class APIService {
 
   async refreshSpotifyToken(){
     const response = await fetch("/profile/refresh-spotify-token",{method:"POST"})
-    this.checkStatus(response);
+    await this.checkStatus(response);
     const result = await response.json();
     return result.user_token;
   }
@@ -100,18 +100,25 @@ export default class APIService {
       accept: 'application/json',
       method: "GET"
     })
-    this.checkStatus(response);
+    await this.checkStatus(response);
     const result = await response.json();
     
     return result.payload
   }
   
-  checkStatus(response) {
-    if (response.status >= 200 && response.status < 300) {
+  async checkStatus(response) {
+    if (response.ok || (response.status >= 200 && response.status < 300)) {
       return;
     }
-    const error = new Error(`HTTP Error ${response.statusText}`);
-    error.status = response.statusText;
+    let errorMessage = `HTTP Error ${response.statusText}`
+    try {
+      // The API will return an JSON error object with properties {code, error}
+      const errorObject = await response.json();
+      errorMessage = errorObject.error
+    } catch (err) {
+    }
+    const error = new Error(errorMessage);
+    error.status = response.status;
     error.response = response;
     throw error;
   }
