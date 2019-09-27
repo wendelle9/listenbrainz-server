@@ -133,9 +133,36 @@ class MusicalOdyssey extends React.Component {
 
             <h3>A musical odyssey</h3>
 
-            {!this.state.listens.length &&
+            {this.state.listens.length > 0 &&
+              <div>
+                <table className="table table-condensed table-striped listens-table" id="listens">
+                  <thead>
+                    <tr>
+                      <th>Track</th>
+                      <th>Artist</th>
+                      <th width="50px"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {this.state.listens
+                      .map((listen, index) => {
+                        return (
+                          <tr key={index}
+                            onDoubleClick={this.playListen.bind(this, listen)}
+                            className={`listen ${this.isCurrentListen(listen) ? 'info' : ''}`}  >
+                            <td>{getTrackLink(listen)}</td>
+                            <td>{getArtistLink(listen)}</td>
+                            <td className="playButton">{getPlayButton(listen, this.playListen.bind(this, listen))}</td>
+                          </tr>
+                        )
+                      })
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
             <form onSubmit={this.handleSubmit}>
-                <p>Enter two tracks' MBID to create a playlist with X steps in-between</p>
+                <p>Enter two recording MBIDs to create a playlist</p>
                 <table className="table table-border table-striped">
                     <tbody>
                     <tr>
@@ -173,41 +200,12 @@ class MusicalOdyssey extends React.Component {
                     </tr>
                     <tr>
                         <td colSpan={2}>
-                            <input className="btn btn-block btn-lg btn-primary" type="submit" value="Take me on an odyssey"/>
+                            <input className="btn btn-block btn-lg btn-primary" type="submit" value="Take me on a musical journey"/>
                         </td>
                     </tr>
                   </tbody>
                 </table>
             </form>
-            }
-            {this.state.listens.length > 0 &&
-              <div>
-                <table className="table table-condensed table-striped listens-table" id="listens">
-                  <thead>
-                    <tr>
-                      <th>Track</th>
-                      <th>Artist</th>
-                      <th width="50px"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {this.state.listens
-                      .map((listen, index) => {
-                        return (
-                          <tr key={index}
-                            onDoubleClick={this.playListen.bind(this, listen)}
-                            className={`listen ${this.isCurrentListen(listen) ? 'info' : ''}`}  >
-                            <td>{getTrackLink(listen)}</td>
-                            <td>{getArtistLink(listen)}</td>
-                            <td className="playButton">{getPlayButton(listen, this.playListen.bind(this, listen))}</td>
-                          </tr>
-                        )
-                      })
-                    }
-                  </tbody>
-                </table>
-              </div>
-            }
             <br/>
           </div>
           <div className="col-md-4" style={{ position: "-webkit-sticky", position: "sticky", top: 20 }}>
