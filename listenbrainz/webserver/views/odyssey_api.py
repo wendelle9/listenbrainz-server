@@ -2,7 +2,7 @@ import ujson
 import requests
 from flask import Blueprint, request, jsonify, current_app, render_template
 from flask_login import current_user, login_required
-from werkzeug.exceptions import BadRequest, InternalServerError, NotFound
+from listenbrainz.webserver.errors import APIInternalServerError, APINotFound, APIBadRequest
 from listenbrainz.webserver.decorators import crossdomain
 from listenbrainz.webserver.rate_limiter import ratelimit
 from listenbrainz.webserver.views.api import api_bp, _parse_int_arg # yes, I am prepared to burn in hell for this. its a hack!
@@ -20,25 +20,25 @@ def odyssey(mbid0, mbid1):
     steps = _parse_int_arg("steps")
 
     if not is_valid_uuid(mbid0) or not is_valid_uuid(mbid1):
-        raise BadRequest("One or both of the recording MBIDs are invalid.")
+        raise APIBadRequest("One or both of the recording MBIDs are invalid.")
 
     url = SIMILARITY_SERVER_URL + mbid0 + "/" + mbid1 + "?steps=%d" % steps
     current_app.logger.error(url)
 
     r = requests.get(url)
     if r.status_code == 404:
-        raise NotFound("One or more of the passed MBIDs were not present on the similarity server.")
+        raise APINotFound("One or more of the passed MBIDs were not present on the similarity server.")
 
     if r.status_code != 200:
-        raise InternalServerError("Similarity server returned error %s" % r.status_code)
+        raise APIInternalServerError("Similarity server returned error %s" % r.status_code)
 
     try:
         data = ujson.loads(r.json())
     except ValueError:
-        raise InternalServerError("Similarity server returned invalid JSON")
+        raise APIInternalServerError("Similarity server returned invalid JSON")
 
     if not data:
-        raise NotFound("A path between the two given tracks could not be found.")
+        raise APINotFound("A path between the two given tracks could not be found.")
 
     recordings = mb_rec.get_many_recordings_by_mbid(data, includes=["artists"])
     mogged = []
