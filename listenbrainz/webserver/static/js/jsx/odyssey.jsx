@@ -17,8 +17,10 @@ class MusicalOdyssey extends React.Component {
       alerts: [],
       listens: props.listens || [],
       currentListen : null,
-      mode: props.mode,
-      direction: "down"
+      direction: "down",
+      startTrack: "",
+      endTrack: "",
+      numberOfSteps: ""
     };
     this.handleCurrentListenChange = this.handleCurrentListenChange.bind(this);
     this.handleSpotifyAccountError = this.handleSpotifyAccountError.bind(this);
@@ -28,6 +30,7 @@ class MusicalOdyssey extends React.Component {
     this.onAlertDismissed = this.onAlertDismissed.bind(this);
     this.playListen = this.playListen.bind(this);
     this.handleInputChange = this.handleInputChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
     this.spotifyPlayer = React.createRef();
 
     this.APIService = new APIService(props.api_url || `${window.location.origin}/1`);
@@ -98,10 +101,11 @@ class MusicalOdyssey extends React.Component {
   }
 
   handleSubmit(event) {
-    alert(`Calling API with MBIDS ${this.state.startTrack} and ${this.state.endTrack}, ${this.state.numberOfSteps} steps in-between`);
+    console.debug(`Calling API with MBIDS ${this.state.startTrack} and ${this.state.endTrack}, ${this.state.numberOfSteps} steps in-between`);
     event.preventDefault();
     this.APIService.getOdysseyPlaylist(this.state.startTrack,this.state.endTrack,this.state.numberOfSteps)
-    .then(listens => this.setState({listens}))
+    .then(listens => this.setState({listens: listens || []}))
+    .catch(error => this.newAlert("danger",`Error (${error.status})`, error.message))
   }
   
   
@@ -132,13 +136,13 @@ class MusicalOdyssey extends React.Component {
             {!this.state.listens.length &&
               <div className="lead text-center">
                   <p>Enter two tracks' MBID to create a playlist with X steps in-between</p>
-                  <form>
+                  <form onSubmit={this.handleSubmit}>
                     <label>
                         Start track:
                         <input
                         name="startTrack"
                         type="text"
-                        checked={this.state.startTrack}
+                        value={this.state.startTrack}
                         onChange={this.handleInputChange} />
                     </label>
                     <br />
@@ -159,7 +163,8 @@ class MusicalOdyssey extends React.Component {
                         value={this.state.endTrack}
                         onChange={this.handleInputChange} />
                     </label>
-                    </form>
+                    <input type="submit" value="Submit" />
+                </form>
               </div>
             }
             {this.state.listens.length > 0 &&

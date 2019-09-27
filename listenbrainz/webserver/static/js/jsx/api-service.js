@@ -103,7 +103,7 @@ export default class APIService {
     this.checkStatus(response);
     const result = await response.json();
     
-    return result.payload.listens
+    return result.payload
   }
   
   checkStatus(response) {
