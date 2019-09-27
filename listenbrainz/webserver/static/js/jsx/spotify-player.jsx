@@ -46,7 +46,7 @@ export class SpotifyPlayer extends React.Component {
     this.isCurrentListen = this.isCurrentListen.bind(this);
     this.playListen = this.playListen.bind(this);
     this.playNextTrack = this.playNextTrack.bind(this);
-    this.debouncedPlayNextTrack = _.debounce(this.playNextTrack, 500, {leading:true, trailing:false});
+    this.debouncedPlayNextTrack = _.debounce(this.playNextTrack, 500, {leading:false, trailing:true});
     this.playPreviousTrack = this.playPreviousTrack.bind(this);
     this.search_and_play_track = this.search_and_play_track.bind(this);
     this.startPlayerStateTimer = this.startPlayerStateTimer.bind(this);
@@ -90,7 +90,7 @@ export class SpotifyPlayer extends React.Component {
         return this.play_spotify_uri(track.uri);
       }
       this.handleWarning("Could not find track on Spotify");
-      this.playNextTrack();
+      this.debouncedPlayNextTrack();
     })
     .catch(errorObject => {
       if(errorObject.status === 401){
@@ -179,7 +179,7 @@ export class SpotifyPlayer extends React.Component {
       && _isEqual(element,this.props.currentListen);
   }
   playPreviousTrack() {
-    this.playNextTrack(true);
+    this.debouncedPlayNextTrack(true);
   }
   playNextTrack(invert) {
     if (this.props.listens.length === 0)
@@ -432,8 +432,8 @@ export class SpotifyPlayer extends React.Component {
       <div>
         <PlaybackControls
           playPreviousTrack={this.playPreviousTrack}
-          playNextTrack={this.playNextTrack}
-          togglePlay={this._firstRun ? this.playNextTrack : this.togglePlay}
+          playNextTrack={this.debouncedPlayNextTrack}
+          togglePlay={this._firstRun ? this.debouncedPlayNextTrack : this.togglePlay}
           playerPaused={this.state.playerPaused}
           toggleDirection={this.toggleDirection}
           direction={this.state.direction}
