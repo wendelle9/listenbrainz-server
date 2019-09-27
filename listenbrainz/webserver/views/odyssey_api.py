@@ -54,7 +54,6 @@ def odyssey(mbid0, mbid1):
                     "artist_names": arnames,
                 },
                 "artist_name": recordings[mbid]['artists'][0]['name'], 
-                "release_name": "Dunno, man!",
                 "track_name": recordings[mbid]['name'], 
             }
         })
