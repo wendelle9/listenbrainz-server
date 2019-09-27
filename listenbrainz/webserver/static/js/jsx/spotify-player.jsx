@@ -125,7 +125,7 @@ export class SpotifyPlayer extends React.Component {
       if(response.status === 403){
         return this.handleAccountError(response.statusText);
       }
-      if(response.status === 404){ 
+      if(response.status === 404){
         // Device not found
         // Reconnect and try again
         return this.connectSpotifyPlayer(this.play_spotify_uri.bind(this, spotify_uri));
@@ -146,7 +146,7 @@ export class SpotifyPlayer extends React.Component {
     }
     try {
       const scopes = permission.split(" ");
-      const requiredScopes = ["streaming", "user-read-birthdate", "user-read-email", "user-read-private"];
+      const requiredScopes = ["streaming", "user-read-email", "user-read-private"];
       for (var i in requiredScopes) {
         if (!scopes.includes(requiredScopes[i])) {
           if(typeof this.props.onPermissionError === "function") {
