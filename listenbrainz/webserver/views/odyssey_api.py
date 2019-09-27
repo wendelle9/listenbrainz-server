@@ -1,41 +1,16 @@
 import ujson
+import requests
 from flask import Blueprint, request, jsonify, current_app, render_template
 from flask_login import current_user, login_required
+from werkzeug.exceptions import BadRequest, InternalServerError, NotFound
 from listenbrainz.webserver.decorators import crossdomain
 from listenbrainz.webserver.rate_limiter import ratelimit
 from listenbrainz.webserver.views.api import api_bp, _parse_int_arg # yes, I am prepared to burn in hell for this. its a hack!
+from listenbrainz.webserver.views.api_tools import is_valid_uuid
 from listenbrainz.domain import spotify
-from brainzutils import musicbrainz_db as mbdb
+from brainzutils.musicbrainz_db import recording as mb_rec
 
-TEST_RECORDINGS = [
-    '4b5273c8-45f2-4bea-b73c-5128cd57faa8', 
-    '4c8bba36-4bc5-4ac8-b25f-b35a43a90adb', 
-    'be84c6fc-738a-49bb-b9ad-56db27a9eacb', 
-    '9fa30946-ef20-49f4-be76-87b3e4329eac', 
-    '9420c245-10aa-43bf-a583-08f0219e5666', 
-    '7054dd17-14a2-498d-a595-5ae16a8948da', 
-    '522a889a-abc2-471b-9ebb-9231fc2ff4d7', 
-    '62c2e20a-559e-422f-a44c-9afa7882f0c4'
-]
-
-fakeData = [
-    {
-        "track_metadata": {
-            "additional_info": {
-                "artist_msid": "55b758e5-e3a4-45c1-8fce-9ca2fe393b7b",
-                "rating": "",
-                "recording_mbid": "",
-                "release_msid": "576d1847-2c59-4280-84dc-4700093e8855",
-                "source": "P",
-                "track_length": "247",
-                "track_number": ""
-            },
-            "artist_name": "Chillhop Music",
-            "release_name": "Chillhop",
-            "track_name": "Stan Forebee - Look Back"
-        }
-    },
-]
+SIMILARITY_SERVER_URL = "http://similarity.acousticbrainz.org/path/similarity_path/"
 
 @api_bp.route("/odyssey/<mbid0>/<mbid1>")
 @crossdomain(headers="Authorization, Content-Type")
@@ -44,24 +19,48 @@ def odyssey(mbid0, mbid1):
  
     steps = _parse_int_arg("steps")
 
-    recordings = mbdb.get_many_recordings_by_mbid(TEST_RECORDINGS, includes=["artists"])
-    current_app.logger.error(recordings)
+    if not is_valid_uuid(mbid0) or not is_valid_uuid(mbid1):
+        raise BadRequest("One or both of the recording MBIDs are invalid.")
+
+    url = SIMILARITY_SERVER_URL + mbid0 + "/" + mbid1 + "?steps=%d" % steps
+    current_app.logger.error(url)
+
+    r = requests.get(url)
+    if r.status_code == 404:
+        raise NotFound("One or more of the passed MBIDs were not present on the similarity server.")
+
+    if r.status_code != 200:
+        raise InternalServerError("Similarity server returned error %s" % r.status_code)
+
+    try:
+        data = ujson.loads(r.json())
+    except ValueError:
+        raise InternalServerError("Similarity server returned invalid JSON")
+
+    if not data:
+        raise NotFound("A path between the two given tracks could not be found.")
+
+    recordings = mb_rec.get_many_recordings_by_mbid(data, includes=["artists"])
     mogged = []
-    for recording in recordings:
+    for mbid in recordings.keys():
+        armbids = [ a['id'] for a in recordings[mbid]['artists'] ]
+        arnames = [ a['name'] for a in recordings[mbid]['artists'] ]
         mogged.append({
             "track_metadata": {
                 "additional_info": {
-                    "artist_msid": "55b758e5-e3a4-45c1-8fce-9ca2fe393b7b",
+                    "artist_msid": "",
                     "rating": "",
-                    "recording_mbid": "",
-                    "release_msid": "576d1847-2c59-4280-84dc-4700093e8855",
-                    "source": "P",
-                    "track_length": "247",
-                    "track_number": ""
+                    "recording_mbid": mbid,
+                    "release_msid": "",
+                    "source": "",
+                    "track_length": "%s" % int(recordings[mbid]['length']),
+                    "track_number": "",
+                    "artist_mbids": armbids,
+                    "artist_names": arnames,
                 },
-                "artist_name": "Chillhop Music",
-                "release_name": "Chillhop",
-                "track_name": "Stan Forebee - Look Back"
+                "artist_name": recordings[mbid]['artists'][0]['name'], 
+                "release_name": "Dunno, man!",
+                "track_name": recordings[mbid]['name'], 
             }
         })
 
