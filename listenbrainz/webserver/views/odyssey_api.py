@@ -10,7 +10,7 @@ from listenbrainz.webserver.views.api_tools import is_valid_uuid
 from listenbrainz.domain import spotify
 from brainzutils.musicbrainz_db import recording as mb_rec
 
-SIMILARITY_SERVER_URL = "http://similarity.acousticbrainz.org/path/similarity_path/"
+SIMILARITY_SERVER_URL = "http://similarity.acousticbrainz.org:8088/api/v1/path/similarity_path/"
 
 @api_bp.route("/odyssey/<mbid0>/<mbid1>")
 @crossdomain(headers="Authorization, Content-Type")
@@ -32,11 +32,7 @@ def odyssey(mbid0, mbid1):
     if r.status_code != 200:
         raise APIInternalServerError("Similarity server returned error %s" % r.status_code)
 
-    try:
-        data = ujson.loads(r.json())
-    except ValueError:
-        raise APIInternalServerError("Similarity server returned invalid JSON")
-
+    data = r.json()
     if not data:
         raise APINotFound("A path between the two given tracks could not be found.")
 
@@ -53,7 +49,6 @@ def odyssey(mbid0, mbid1):
                     "recording_mbid": mbid,
                     "release_msid": "",
                     "source": "",
-                    "track_length": "%s" % int(recordings[mbid]['length']),
                     "track_number": "",
                     "artist_mbids": armbids,
                     "artist_names": arnames,
