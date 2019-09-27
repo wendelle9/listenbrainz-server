@@ -10,10 +10,10 @@ module.exports = function(env){
   ];
   return {
     mode: isProd ? "production" : "development",
-    entry: [
-      '/static/js/jsx/profile.jsx',
-      '/static/js/jsx/odyssey.jsx'
-    ],
+    entry: {
+      main: '/static/js/jsx/profile.jsx',
+      odyssey: '/static/js/jsx/odyssey.jsx'
+    },
     output: {
       filename: isProd ? '[name].[contenthash].js' : '[name].js',
       path: '/static/js/dist'
@@ -39,6 +39,17 @@ module.exports = function(env){
             }
         }
       ]
+    },
+    optimization: {
+      splitChunks: {
+        cacheGroups: {
+          commons: {
+            name: 'commons',
+            chunks: 'initial',
+            minChunks: 2
+          }
+        }
+      }
     },
     resolve: {
         modules: ['/code/node_modules', '/static/node_modules']
