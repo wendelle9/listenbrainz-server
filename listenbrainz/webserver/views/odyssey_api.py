@@ -9,8 +9,9 @@ from listenbrainz.webserver.views.api import api_bp, _parse_int_arg # yes, I am 
 from listenbrainz.webserver.views.api_tools import is_valid_uuid
 from listenbrainz.domain import spotify
 from brainzutils.musicbrainz_db import recording as mb_rec
+from brainzutils.musicbrainz_db.exceptions import NoDataFoundException
 
-SIMILARITY_SERVER_URL = "http://similarity.acousticbrainz.org:8088/api/v1/path/similarity_path/"
+SIMILARITY_SERVER_URL = "http://similarity.acousticbrainz.org:8088/api/v1/path/"
 
 @api_bp.route("/odyssey/<mbid0>/<mbid1>")
 @crossdomain(headers="Authorization, Content-Type")
@@ -22,8 +23,7 @@ def odyssey(mbid0, mbid1):
     if not is_valid_uuid(mbid0) or not is_valid_uuid(mbid1):
         raise APIBadRequest("One or both of the recording MBIDs are invalid.")
 
-    url = SIMILARITY_SERVER_URL + mbid0 + "/" + mbid1 + "?steps=%d" % steps
-    current_app.logger.error(url)
+    url = SIMILARITY_SERVER_URL + "similarity_path/" + mbid0 + "/" + mbid1 + "?steps=%d" % steps
 
     r = requests.get(url)
     if r.status_code == 404:
@@ -52,6 +52,68 @@ def odyssey(mbid0, mbid1):
                     "track_number": "",
                     "artist_mbids": armbids,
                     "artist_names": arnames,
+                },
+                "artist_name": recordings[mbid]['artists'][0]['name'], 
+                "track_name": recordings[mbid]['name'], 
+            }
+        })
+
+    return jsonify({'status': 'ok', 'payload': mogged})
+
+
+@api_bp.route("/odyssey/debug/<metric>/<mbid>")
+@crossdomain(headers="Authorization, Content-Type")
+@ratelimit()
+def odyssey_debug(metric, mbid):
+ 
+    if not is_valid_uuid(mbid):
+        raise APIBadRequest("The given MBID is invalid.")
+
+    url = SIMILARITY_SERVER_URL + metric + "/" + mbid 
+    current_app.logger.error(url)
+
+    r = requests.get(url)
+    if r.status_code == 404:
+        raise APINotFound("The given MBID was present on the similarity server.")
+
+    if r.status_code != 200:
+        raise APIInternalServerError("Similarity server returned error %s" % r.status_code)
+
+    data = r.json()
+    if not data:
+        raise APINotFound("The similarity server returned no data.")
+
+    while True:
+        recording_ids = [ item[0] for item in data ]
+        try:
+            recordings = mb_rec.get_many_recordings_by_mbid(recording_ids, includes=["artists"])
+            break
+        except NoDataFoundException as err:
+            missing = ujson.loads(str(err)[33:].replace("'", '"'))
+            new_data = []
+            for rec, value in data:
+                if rec not in missing:
+                    new_data.append((rec, value))
+            data = new_data
+
+    current_app.logger.error(recordings)
+        
+    mogged = []
+    for mbid, dist in zip(recordings.keys(), data):
+        armbids = [ a['id'] for a in recordings[mbid]['artists'] ]
+        arnames = [ a['name'] for a in recordings[mbid]['artists'] ]
+        mogged.append({
+            "track_metadata": {
+                "additional_info": {
+                    "artist_msid": "",
+                    "rating": "",
+                    "recording_mbid": mbid,
+                    "release_msid": "",
+                    "source": "",
+                    "track_number": "",
+                    "artist_mbids": armbids,
+                    "artist_names": arnames,
+                    "distance": dist,
                 },
                 "artist_name": recordings[mbid]['artists'][0]['name'], 
                 "track_name": recordings[mbid]['name'], 
