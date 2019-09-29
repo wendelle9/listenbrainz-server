@@ -258,6 +258,7 @@ class MusicalOdyssey extends React.Component {
                     <tr>
                       <th>Track</th>
                       <th>Artist</th>
+                      {this.state.debug && <th>Distance</th>}
                       <th width="50px"></th>
                     </tr>
                   </thead>
@@ -270,6 +271,7 @@ class MusicalOdyssey extends React.Component {
                             className={`listen ${this.isCurrentListen(listen) ? 'info' : ''}`}  >
                             <td>{getTrackLink(listen)}</td>
                             <td>{getArtistLink(listen)}</td>
+                            {this.state.debug && <td>{_.get(listen,"track_metadata.additional_info.distance","—")}</td>}
                             <td className="playButton">{getPlayButton(listen, this.playListen.bind(this, listen))}</td>
                           </tr>
                         )
