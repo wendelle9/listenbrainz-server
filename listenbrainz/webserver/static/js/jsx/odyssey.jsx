@@ -118,7 +118,7 @@ class MusicalOdyssey extends React.Component {
     event.preventDefault();
     this.APIService.getSimilarTracksPlaylist(this.state.mbid0,this.state.metric,this.state.limit)
     //Do we need to order returned tracks by distance?
-    .then(listens => this.setState({listens: _.sortBy(listens || [], 'distance')}))
+    .then(listens => this.setState({listens: _.sortBy(listens || [], 'track_metadata.additional_info.distance')}))
     .catch(error => this.newAlert("danger",`Error (${error.status})`, error.message))
   }
   
