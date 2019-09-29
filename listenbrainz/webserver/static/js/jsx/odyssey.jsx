@@ -19,8 +19,9 @@ class MusicalOdyssey extends React.Component {
       currentListen : null,
       direction: "down",
       debug: props.debug || false,
-      mbid0: "",
-      mbid1: "",
+      mbid0: props.mbid0 || "",
+      mbid1: props.mbid1 || "",
+      metric: props.metric || "",
       limit: props.limit || 20
     };
     this.handleCurrentListenChange = this.handleCurrentListenChange.bind(this);
@@ -31,7 +32,7 @@ class MusicalOdyssey extends React.Component {
     this.onAlertDismissed = this.onAlertDismissed.bind(this);
     this.playListen = this.playListen.bind(this);
     this.handleInputChange = this.handleInputChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
+    this.handleOdysseyFormSubmit = this.handleOdysseyFormSubmit.bind(this);
     this.handleSimilarFormSubmit = this.handleSimilarFormSubmit.bind(this);
     this.getOdysseyForm = this.getOdysseyForm.bind(this);
     this.getSimilarForm = this.getSimilarForm.bind(this);
@@ -104,10 +105,10 @@ class MusicalOdyssey extends React.Component {
     });
   }
 
-  handleSubmit(event) {
-    console.debug(`Calling API with MBIDS ${this.state.mbid0} and ${this.state.mbid1}, ${this.state.limit} steps in-between`);
+  handleOdysseyFormSubmit(event) {
+    console.debug(`Calling API with MBIDS ${this.state.mbid0} and ${this.state.mbid1}, metric ${this.state.metric}`);
     event.preventDefault();
-    this.APIService.getOdysseyPlaylist(this.state.mbid0,this.state.mbid1,this.state.limit)
+    this.APIService.getOdysseyPlaylist(this.state.mbid0,this.state.mbid1,this.state.metric)
     .then(listens => this.setState({listens: listens || []}))
     .catch(error => this.newAlert("danger",`Error (${error.status})`, error.message))
   }
@@ -123,7 +124,7 @@ class MusicalOdyssey extends React.Component {
   
   getOdysseyForm() {
    return (
-      <form onSubmit={this.handleSubmit}>
+      <form onSubmit={this.handleOdysseyFormSubmit}>
         <p>Enter two recording MBIDs to create a playlist</p>
         <table className="table table-border table-striped">
             <tbody>
@@ -150,14 +151,17 @@ class MusicalOdyssey extends React.Component {
                 </td>
             </tr>
             <tr>
-                <td><label htmlFor="limit">Number of tracks:</label></td>
+                <td><label htmlFor="metric">Metric:</label></td>
                 <td>
-                    <input
+                    <select
                     className="form-control"
-                        id="limit"
-                        type="number"
-                        value={this.state.limit}
-                        onChange={this.handleInputChange} />
+                    id="metric"
+                    value={this.state.metric}
+                    onChange={this.handleInputChange} >
+                      {(this.props.metrics || []).map(metric =>
+                        <option key={metric} value={metric}>{metric}</option>
+                      )}
+                    </select>
                 </td>
             </tr>
             <tr>
@@ -196,7 +200,7 @@ class MusicalOdyssey extends React.Component {
                     value={this.state.metric}
                     onChange={this.handleInputChange} >
                       {(this.props.metrics || []).map(metric =>
-                        <option value={metric}>{metric}</option>
+                        <option key={metric} value={metric}>{metric}</option>
                       )}
                     </select>
                 </td>

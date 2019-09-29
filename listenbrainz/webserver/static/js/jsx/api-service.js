@@ -84,16 +84,16 @@ export default class APIService {
     return result.user_token;
   }
   
-  async getOdysseyPlaylist(startTrack, endTrack, steps) {
+  async getOdysseyPlaylist(startTrack, endTrack, metric) {
     
-    if(isNil(startTrack) || isNil(endTrack)) {
+    if(isNil(startTrack) || isNil(endTrack) || startTrack === "" || endTrack === "") {
       throw new SyntaxError('Expected a startTrack and an endTrack');
     }
 
     let query = `${this.APIBaseURI}/odyssey/${startTrack}/${endTrack}`;
 
-    if(!isNil(steps) && isFinite(Number(steps))){
-      query += `?steps=${steps}`
+    if(!isNil(metric)){
+      query += `?metric=${metric}`
     }
 
     const response = await fetch(query, {
