@@ -22,10 +22,14 @@ export async function searchForSpotifyTrack(spotifyToken, trackName, artistName,
     console.error("searchForSpotifyTrack was not passed a trackName, cannot proceed");
     return null;
   }
-  const queryString = `q="${trackName}"
-    ${artistName &&  " artist:"+artistName}
-    ${releaseName &&  " album:"+releaseName}
-    &type=track`;
+  let queryString = `q="${trackName}"`;
+  if (!_.isNil(artistName)){
+    queryString += ` artist:"${artistName}"`
+  }
+  if (!_.isNil(releaseName)){
+    queryString += ` album:"${releaseName}"`
+  }
+  queryString += "&type=track";
     
   const response = await fetch(`https://api.spotify.com/v1/search?${encodeURI(queryString)}`, {
     method: 'GET',
