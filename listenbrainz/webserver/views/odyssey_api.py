@@ -134,7 +134,8 @@ odyssey_bp = Blueprint("odyssey", __name__)
 def odyssey(mbid0, mbid1):
     
     metric = request.args.get("metric", "mfccs")
-    debug = request.args.get("debug", False)
+    if not mbid1:
+        debug = True
     user_data = {
         "id": current_user.id,
         "name": current_user.musicbrainz_id,
