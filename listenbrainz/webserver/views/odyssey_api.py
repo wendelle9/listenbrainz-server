@@ -124,11 +124,12 @@ def odyssey_debug(metric, mbid):
 
 
 odyssey_bp = Blueprint("odyssey", __name__)
-@odyssey_bp.route("/", defaults={"mbid0" : "", "mbid1" : "", "metric" : "mfccs"})
-@odyssey_bp.route("/<mbid0>/<mbid1>/<metric>")
+@odyssey_bp.route("/", defaults={"mbid0" : "", "mbid1" : ""})
+@odyssey_bp.route("/<mbid0>/<mbid1>")
 @login_required
-def odyssey(mbid0, mbid1, metric):
+def odyssey(mbid0, mbid1):
     
+    metric = request.args.get("metric", "mfccs")
     user_data = {
         "id": current_user.id,
         "name": current_user.musicbrainz_id,
