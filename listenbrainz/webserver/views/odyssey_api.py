@@ -23,7 +23,8 @@ def odyssey(mbid0, mbid1):
     if not is_valid_uuid(mbid0) or not is_valid_uuid(mbid1):
         raise APIBadRequest("One or both of the recording MBIDs are invalid.")
 
-    url = SIMILARITY_SERVER_URL + "similarity_path/" + mbid0 + "/" + mbid1 + "?steps=%d" % steps
+    url = SIMILARITY_SERVER_URL + "similarity_path/" + mbid0 + "/" + mbid1 + "?metric=" + metric
+    current_app.logger.error(url)
 
     r = requests.get(url)
     if r.status_code == 404:
@@ -71,7 +72,7 @@ def odyssey_debug(mbid):
 
     metric = request.args.get("metric", "mfccs")
 
-    url = SIMILARITY_SERVER_URL + metric + "/" + mbid 
+    url = SIMILARITY_SERVER_URL + "/" + mbid + "?metric=" + metric
     current_app.logger.error(url)
 
     r = requests.get(url)
