@@ -124,9 +124,10 @@ def odyssey_debug(metric, mbid):
 
 
 odyssey_bp = Blueprint("odyssey", __name__)
-@odyssey_bp.route("/")
+@odyssey_bp.route("/", defaults={"mbid0" : "", "mbid1" : "", "metric" : "mfccs"})
+@odyssey_bp.route("/<mbid0>/<mbid1>/<metric>")
 @login_required
-def odyssey():
+def odyssey(mbid0, mbid1, metric):
     
     user_data = {
         "id": current_user.id,
@@ -139,6 +140,10 @@ def odyssey():
         "user": user_data,
         "spotify": spotify_data,
         "api_url": current_app.config["API_URL"],
+        "mbid0" : mbid0,
+        "mbid1" : mbid1,
+        "metric" : metric,
+        "metrics" : [ "mfccs", "mfccsw", "gfccs", "gfccsw", "bpm", "key", "onsetrate", "moods", "instruments", "dortmund", "rosamerica", "tzanetakis" ]
     }
 
     return render_template(
@@ -146,3 +151,4 @@ def odyssey():
         props=ujson.dumps(props),
         user=current_user,
     )
+
