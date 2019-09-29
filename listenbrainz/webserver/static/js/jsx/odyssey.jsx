@@ -18,9 +18,11 @@ class MusicalOdyssey extends React.Component {
       listens: props.listens || [],
       currentListen : null,
       direction: "down",
-      startTrack: "",
-      endTrack: "",
-      numberOfSteps: 25
+      debug: props.debug || false,
+      mbid0: props.mbid0 || "",
+      mbid1: props.mbid1 || "",
+      metric: props.metric || "",
+      limit: props.limit || 20
     };
     this.handleCurrentListenChange = this.handleCurrentListenChange.bind(this);
     this.handleSpotifyAccountError = this.handleSpotifyAccountError.bind(this);
@@ -30,7 +32,10 @@ class MusicalOdyssey extends React.Component {
     this.onAlertDismissed = this.onAlertDismissed.bind(this);
     this.playListen = this.playListen.bind(this);
     this.handleInputChange = this.handleInputChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
+    this.handleOdysseyFormSubmit = this.handleOdysseyFormSubmit.bind(this);
+    this.handleSimilarFormSubmit = this.handleSimilarFormSubmit.bind(this);
+    this.getOdysseyForm = this.getOdysseyForm.bind(this);
+    this.getSimilarForm = this.getSimilarForm.bind(this);
     this.spotifyPlayer = React.createRef();
 
     this.APIService = new APIService(props.api_url || `${window.location.origin}/1`);
@@ -100,12 +105,125 @@ class MusicalOdyssey extends React.Component {
     });
   }
 
-  handleSubmit(event) {
-    console.debug(`Calling API with MBIDS ${this.state.startTrack} and ${this.state.endTrack}, ${this.state.numberOfSteps} steps in-between`);
+  handleOdysseyFormSubmit(event) {
+    console.debug(`Calling API with MBIDS ${this.state.mbid0} and ${this.state.mbid1}, metric ${this.state.metric}`);
     event.preventDefault();
-    this.APIService.getOdysseyPlaylist(this.state.startTrack,this.state.endTrack,this.state.numberOfSteps)
+    this.APIService.getOdysseyPlaylist(this.state.mbid0,this.state.mbid1,this.state.metric)
     .then(listens => this.setState({listens: listens || []}))
     .catch(error => this.newAlert("danger",`Error (${error.status})`, error.message))
+  }
+  
+  handleSimilarFormSubmit(event) {
+    console.debug(`Calling  API to get tracks similar to MBID ${this.state.mbid0} according to metric ${this.state.metric}, limited to ${this.state.limit} tracks`);
+    event.preventDefault();
+    this.APIService.getSimilarTracksPlaylist(this.state.mbid0,this.state.metric,this.state.limit)
+    //Do we need to order returned tracks by distance?
+    .then(listens => this.setState({listens: listens || []}))
+    .catch(error => this.newAlert("danger",`Error (${error.status})`, error.message))
+  }
+  
+  getOdysseyForm() {
+   return (
+      <form onSubmit={this.handleOdysseyFormSubmit}>
+        <p>Enter two recording MBIDs to create a playlist</p>
+        <table className="table table-border table-striped">
+            <tbody>
+            <tr>
+                <td><label htmlFor="mbid0">Start track:</label></td>
+                <td>
+                    <input
+                    className="form-control"
+                    id="mbid0"
+                    type="text"
+                    value={this.state.mbid0}
+                    onChange={this.handleInputChange} />
+                </td>
+            </tr>
+            <tr>
+                <td><label htmlFor="mbid1">End track:</label></td>
+                <td>
+                    <input
+                    className="form-control"
+                    id="mbid1"
+                    type="text"
+                    value={this.state.mbid1}
+                    onChange={this.handleInputChange} />
+                </td>
+            </tr>
+            <tr>
+                <td><label htmlFor="metric">Metric:</label></td>
+                <td>
+                    <select
+                    className="form-control"
+                    id="metric"
+                    value={this.state.metric}
+                    onChange={this.handleInputChange} >
+                      {(this.props.metrics || []).map(metric =>
+                        <option key={metric} value={metric}>{metric}</option>
+                      )}
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td colSpan={2}>
+                    <input className="btn btn-block btn-lg btn-primary" type="submit" value="Take me on a musical journey"/>
+                </td>
+            </tr>
+          </tbody>
+        </table>
+    </form>)
+  }
+  
+  getSimilarForm() {
+   return (
+      <form onSubmit={this.handleSimilarFormSubmit}>
+        <p>Enter a recording MBID to query for similar tracks according to a the selected metric</p>
+        <table className="table table-border table-striped">
+            <tbody>
+            <tr>
+                <td><label htmlFor="mbid0">Recording MBID:</label></td>
+                <td>
+                    <input
+                    className="form-control"
+                    id="mbid0"
+                    type="text"
+                    value={this.state.mbid0}
+                    onChange={this.handleInputChange} />
+                </td>
+            </tr>
+            <tr>
+                <td><label htmlFor="metric">Metric:</label></td>
+                <td>
+                    <select
+                    className="form-control"
+                    id="metric"
+                    value={this.state.metric}
+                    onChange={this.handleInputChange} >
+                      {(this.props.metrics || []).map(metric =>
+                        <option key={metric} value={metric}>{metric}</option>
+                      )}
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td><label htmlFor="limit">Number of tracks:</label></td>
+                <td>
+                    <input
+                    className="form-control"
+                        id="limit"
+                        type="number"
+                        value={this.state.limit}
+                        onChange={this.handleInputChange} />
+                </td>
+            </tr>
+            <tr>
+                <td colSpan={2}>
+                    <input className="btn btn-block btn-lg btn-primary" type="submit" value={`Get me ${this.state.limit} similar tracks`}/>
+                </td>
+            </tr>
+          </tbody>
+        </table>
+    </form>)
   }
   
   
@@ -161,51 +279,7 @@ class MusicalOdyssey extends React.Component {
                 </table>
               </div>
             }
-            <form onSubmit={this.handleSubmit}>
-                <p>Enter two recording MBIDs to create a playlist</p>
-                <table className="table table-border table-striped">
-                    <tbody>
-                    <tr>
-                        <td><label htmlFor="startTrack">Start track:</label></td>
-                        <td>
-                            <input
-                            className="form-control"
-                            id="startTrack"
-                            type="text"
-                            value={this.state.startTrack}
-                            onChange={this.handleInputChange} />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><label htmlFor="endTrack">End track:</label></td>
-                        <td>
-                            <input
-                            className="form-control"
-                            id="endTrack"
-                            type="text"
-                            value={this.state.endTrack}
-                            onChange={this.handleInputChange} />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><label htmlFor="numberOfSteps">Number of tracks:</label></td>
-                        <td>
-                            <input
-                            className="form-control"
-                                id="numberOfSteps"
-                                type="number"
-                                value={this.state.numberOfSteps}
-                                onChange={this.handleInputChange} />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colSpan={2}>
-                            <input className="btn btn-block btn-lg btn-primary" type="submit" value="Take me on a musical journey"/>
-                        </td>
-                    </tr>
-                  </tbody>
-                </table>
-            </form>
+            {this.state.debug ? this.getSimilarForm() : this.getOdysseyForm()}
             <br/>
           </div>
           <div className="col-md-4" style={{ position: "-webkit-sticky", position: "sticky", top: 20 }}>
