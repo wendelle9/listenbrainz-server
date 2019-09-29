@@ -71,8 +71,9 @@ def odyssey_debug(mbid):
         raise APIBadRequest("The given MBID is invalid.")
 
     metric = request.args.get("metric", "mfccs")
+    max = int(request.args.get("max", "25"))
 
-    url = SIMILARITY_SERVER_URL + "/" + mbid + "?metric=" + metric
+    url = SIMILARITY_SERVER_URL + "/" + metric + "/" + mbid + "?max=%d" % max
     current_app.logger.error(url)
 
     r = requests.get(url)
@@ -99,8 +100,6 @@ def odyssey_debug(mbid):
                     new_data.append((rec, value))
             data = new_data
 
-    current_app.logger.error(recordings)
-        
     mogged = []
     for mbid, dist in zip(recordings.keys(), data):
         armbids = [ a['id'] for a in recordings[mbid]['artists'] ]
@@ -116,7 +115,7 @@ def odyssey_debug(mbid):
                     "track_number": "",
                     "artist_mbids": armbids,
                     "artist_names": arnames,
-                    "distance": dist,
+                    "distance": dist[1],
                 },
                 "artist_name": recordings[mbid]['artists'][0]['name'], 
                 "track_name": recordings[mbid]['name'], 
