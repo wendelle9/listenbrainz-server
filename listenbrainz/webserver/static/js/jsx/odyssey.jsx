@@ -166,7 +166,7 @@ class MusicalOdyssey extends React.Component {
                 <table className="table table-border table-striped">
                     <tbody>
                     <tr>
-                        <td><label for="startTrack">Start track:</label></td>
+                        <td><label htmlFor="startTrack">Start track:</label></td>
                         <td>
                             <input
                             className="form-control"
@@ -177,7 +177,7 @@ class MusicalOdyssey extends React.Component {
                         </td>
                     </tr>
                     <tr>
-                        <td><label for="endTrack">End track:</label></td>
+                        <td><label htmlFor="endTrack">End track:</label></td>
                         <td>
                             <input
                             className="form-control"
@@ -188,7 +188,7 @@ class MusicalOdyssey extends React.Component {
                         </td>
                     </tr>
                     <tr>
-                        <td><label for="numberOfSteps">Number of tracks:</label></td>
+                        <td><label htmlFor="numberOfSteps">Number of tracks:</label></td>
                         <td>
                             <input
                             className="form-control"
