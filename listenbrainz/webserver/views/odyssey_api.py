@@ -61,13 +61,15 @@ def odyssey(mbid0, mbid1):
     return jsonify({'status': 'ok', 'payload': mogged})
 
 
-@api_bp.route("/odyssey/debug/<metric>/<mbid>")
+@api_bp.route("/odyssey/debug/<mbid>")
 @crossdomain(headers="Authorization, Content-Type")
 @ratelimit()
-def odyssey_debug(metric, mbid):
+def odyssey_debug(mbid):
  
     if not is_valid_uuid(mbid):
         raise APIBadRequest("The given MBID is invalid.")
+
+    metric = request.args.get("metric", "mfccs")
 
     url = SIMILARITY_SERVER_URL + metric + "/" + mbid 
     current_app.logger.error(url)
@@ -125,11 +127,13 @@ def odyssey_debug(metric, mbid):
 
 odyssey_bp = Blueprint("odyssey", __name__)
 @odyssey_bp.route("/", defaults={"mbid0" : "", "mbid1" : ""})
+@odyssey_bp.route("/<mbid0>", defaults={"mbid1" : ""})
 @odyssey_bp.route("/<mbid0>/<mbid1>")
 @login_required
 def odyssey(mbid0, mbid1):
     
     metric = request.args.get("metric", "mfccs")
+    debug = request.args.get("debug", False)
     user_data = {
         "id": current_user.id,
         "name": current_user.musicbrainz_id,
@@ -144,7 +148,8 @@ def odyssey(mbid0, mbid1):
         "mbid0" : mbid0,
         "mbid1" : mbid1,
         "metric" : metric,
-        "metrics" : [ "mfccs", "mfccsw", "gfccs", "gfccsw", "bpm", "key", "onsetrate", "moods", "instruments", "dortmund", "rosamerica", "tzanetakis" ]
+        "metrics" : [ "mfccs", "mfccsw", "gfccs", "gfccsw", "bpm", "key", "onsetrate", "moods", "instruments", "dortmund", "rosamerica", "tzanetakis" ],
+        "debug" : debug
     }
 
     return render_template(
