@@ -72,8 +72,12 @@ def odyssey_debug(mbid):
 
     metric = request.args.get("metric", "mfccs")
     max = int(request.args.get("max", "25"))
+    current_app.logger.error(metric)
+    current_app.logger.error(max)
 
-    url = SIMILARITY_SERVER_URL + "/" + metric + "/" + mbid + "?max=%d" % max
+
+
+    url = SIMILARITY_SERVER_URL + metric + "/" + mbid + "?steps=%d" % max
     current_app.logger.error(url)
 
     r = requests.get(url)
@@ -84,6 +88,8 @@ def odyssey_debug(mbid):
         raise APIInternalServerError("Similarity server returned error %s" % r.status_code)
 
     data = r.json()
+    current_app.logger.error(data)
+
     if not data:
         raise APINotFound("The similarity server returned no data.")
 
