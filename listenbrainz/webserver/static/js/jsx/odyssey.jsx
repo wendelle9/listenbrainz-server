@@ -272,7 +272,15 @@ class MusicalOdyssey extends React.Component {
           <div className="col-md-8">
 
             <h3>A musical odyssey</h3>
-
+            <p>
+              From {getTrackLink(this.state.listens.find(listen =>
+                _.get(listen,"track_metadata.additional_info.recording_mbid") === this.state.mbid0))
+                  || this.state.mbid0 }
+              <br/>
+              to {getTrackLink(this.state.listens.find(listen =>
+                _.get(listen,"track_metadata.additional_info.recording_mbid") === this.state.mbid1))
+                || this.state.mbid1 }
+            </p>
             {this.state.listens.length > 0 &&
               <div>
                 <table className="table table-condensed table-striped listens-table" id="listens">
