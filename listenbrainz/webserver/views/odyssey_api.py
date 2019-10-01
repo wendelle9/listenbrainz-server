@@ -139,8 +139,10 @@ odyssey_bp = Blueprint("odyssey", __name__)
 def odyssey(mbid0, mbid1):
     
     metric = request.args.get("metric", "mfccs")
-    if not mbid1:
-        debug = True
+    if mbid0 and not mbid1:
+        mode = "similarity"
+    else:
+        mode = "odyssey"
     user_data = {
         "id": current_user.id,
         "name": current_user.musicbrainz_id,
@@ -156,7 +158,7 @@ def odyssey(mbid0, mbid1):
         "mbid1" : mbid1,
         "metric" : metric,
         "metrics" : [ "mfccs", "mfccsw", "gfccs", "gfccsw", "bpm", "key", "onsetrate", "moods", "instruments", "dortmund", "rosamerica", "tzanetakis" ],
-        "debug" : debug
+        "mode" : mode
     }
 
     return render_template(

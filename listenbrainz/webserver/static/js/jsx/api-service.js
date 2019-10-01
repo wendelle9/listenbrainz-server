@@ -107,11 +107,8 @@ export default class APIService {
   }
 
   async getSimilarTracksPlaylist(recordingMBID, metric, limit) {
-    if(isNil(recordingMBID)) {
+    if(isNil(recordingMBID) || recordingMBID === "") {
       throw new SyntaxError('Expected a recordingMBID');
-    }
-    if(isNil(metric)) {
-      throw new SyntaxError('Expected a metric');
     }
 
     let query = `${this.APIBaseURI}/odyssey/debug/${recordingMBID}`;
