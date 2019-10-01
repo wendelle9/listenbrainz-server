@@ -8,6 +8,9 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import {SpotifyPlayer} from './spotify-player.jsx';
 import {isEqual as _isEqual} from 'lodash';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEllipsisV } from '@fortawesome/free-solid-svg-icons'
+import {CopyToClipboard} from 'react-copy-to-clipboard';
 
 class MusicalOdyssey extends React.Component {
 
@@ -18,7 +21,7 @@ class MusicalOdyssey extends React.Component {
       listens: props.listens || [],
       currentListen : null,
       direction: "down",
-      debug: props.debug || false,
+      mode: props.mode || "odyssey",
       mbid0: props.mbid0 || "",
       mbid1: props.mbid1 || "",
       metric: props.metric || "",
@@ -33,12 +36,19 @@ class MusicalOdyssey extends React.Component {
     this.playListen = this.playListen.bind(this);
     this.handleInputChange = this.handleInputChange.bind(this);
     this.handleOdysseyFormSubmit = this.handleOdysseyFormSubmit.bind(this);
-    this.handleSimilarFormSubmit = this.handleSimilarFormSubmit.bind(this);
+    this.handleSimilarityFormSubmit = this.handleSimilarityFormSubmit.bind(this);
     this.getOdysseyForm = this.getOdysseyForm.bind(this);
-    this.getSimilarForm = this.getSimilarForm.bind(this);
+    this.getSimilarityForm = this.getSimilarityForm.bind(this);
+    this.navigateToSimilarTrack = this.navigateToSimilarTrack.bind(this);
     this.spotifyPlayer = React.createRef();
 
     this.APIService = new APIService(props.api_url || `${window.location.origin}/1`);
+    if(this.state.mode === "odyssey" && this.state.mbid0 && this.state.mbid1){
+      this.handleOdysseyFormSubmit();
+    }
+    else if(this.state.mode === "similarity" && this.state.mbid0) {
+      this.handleSimilarityFormSubmit();
+    }
   }
 
   handleSpotifyAccountError(error){
@@ -107,15 +117,15 @@ class MusicalOdyssey extends React.Component {
 
   handleOdysseyFormSubmit(event) {
     console.debug(`Calling API with MBIDS ${this.state.mbid0} and ${this.state.mbid1}, metric ${this.state.metric}`);
-    event.preventDefault();
+    event && event.preventDefault();
     this.APIService.getOdysseyPlaylist(this.state.mbid0,this.state.mbid1,this.state.metric)
     .then(listens => this.setState({listens: listens || []}))
     .catch(error => this.newAlert("danger",`Error (${error.status})`, error.message))
   }
   
-  handleSimilarFormSubmit(event) {
+  handleSimilarityFormSubmit(event) {
     console.debug(`Calling  API to get tracks similar to MBID ${this.state.mbid0} according to metric ${this.state.metric}, limited to ${this.state.limit} tracks`);
-    event.preventDefault();
+    event && event.preventDefault();
     this.APIService.getSimilarTracksPlaylist(this.state.mbid0,this.state.metric,this.state.limit)
     //Do we need to order returned tracks by distance?
     .then(listens => this.setState({listens: _.sortBy(listens || [], 'track_metadata.additional_info.distance')}))
@@ -174,9 +184,9 @@ class MusicalOdyssey extends React.Component {
     </form>)
   }
   
-  getSimilarForm() {
+  getSimilarityForm() {
    return (
-      <form onSubmit={this.handleSimilarFormSubmit}>
+      <form onSubmit={this.handleSimilarityFormSubmit}>
         <p>Enter a recording MBID to query for similar tracks according to a the selected metric</p>
         <table className="table table-border table-striped">
             <tbody>
@@ -226,6 +236,18 @@ class MusicalOdyssey extends React.Component {
     </form>)
   }
   
+  navigateToSimilarTrack(recordingMBID) {
+    this.setState({mbid0: recordingMBID}, () => {
+      switch (this.state.mode) {
+        case "odyssey":
+          this.handleOdysseyFormSubmit();
+          break;
+        case "similarity":
+          this.handleSimilarityFormSubmit();
+          break;
+      }
+    });
+  }
   
   render() {
 
@@ -258,20 +280,49 @@ class MusicalOdyssey extends React.Component {
                     <tr>
                       <th>Track</th>
                       <th>Artist</th>
-                      {this.state.debug && <th>Distance</th>}
+                      <th>Distance</th>
+                      <th width="50px"></th>
                       <th width="50px"></th>
                     </tr>
                   </thead>
                   <tbody>
                     {this.state.listens
                       .map((listen, index) => {
+                        const recordingMBID = _.get(listen,"track_metadata.additional_info.recording_mbid");
                         return (
                           <tr key={index}
                             onDoubleClick={this.playListen.bind(this, listen)}
                             className={`listen ${this.isCurrentListen(listen) ? 'info' : ''}`}  >
                             <td>{getTrackLink(listen)}</td>
                             <td>{getArtistLink(listen)}</td>
-                            {this.state.debug && <td>{_.get(listen,"track_metadata.additional_info.distance","—")}</td>}
+                            <td>{_.get(listen,"track_metadata.additional_info.distance","—")}</td>
+                            <td>
+                              <div className="btn-group">
+                                <button disabled={!recordingMBID} type="button" className="btn btn-link dropdown-toggle"
+                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                  <FontAwesomeIcon icon={faEllipsisV}/>
+                                </button>
+                                <ul className="dropdown-menu">
+                                  <li>
+                                    <CopyToClipboard text={recordingMBID}>
+                                      <a>Copy recording MBID</a>
+                                    </CopyToClipboard>
+                                  </li>
+                                  <li>
+                                    <a href={`https://musicbrainz.org/recording/${recordingMBID}`}
+                                      target="_blank">
+                                      Open in MusicBrainz</a>
+                                  </li>
+                                  <li role="separator" className="divider"></li>
+                                  <li>
+                                    <a
+                                      onClick={this.navigateToSimilarTrack.bind(this, recordingMBID)}>
+                                        Explore from this track
+                                    </a>
+                                  </li>
+                                </ul>
+                              </div>
+                            </td>
                             <td className="playButton">{getPlayButton(listen, this.playListen.bind(this, listen))}</td>
                           </tr>
                         )
@@ -281,7 +332,30 @@ class MusicalOdyssey extends React.Component {
                 </table>
               </div>
             }
-            {this.state.debug ? this.getSimilarForm() : this.getOdysseyForm()}
+            <div className="tabbable">
+              <ul className="nav nav-tabs">
+                <li className={this.state.mode === "odyssey"? "active" : ""}>
+                  <a href="#odysseyForm"
+                  aria-controls="home" role="tab"
+                  data-toggle="tab">Odyssey</a>
+                </li>
+                <li className={this.state.mode === "similarity"? "active" : ""}>
+                  <a href="#similarityForm"
+                  aria-controls="home" role="tab"
+                  data-toggle="tab">Track similarity</a>
+                </li>
+              </ul>
+              <div className="tab-content">
+                <div role="tabpanel" className={`tab-pane ${this.state.mode === "odyssey" ? "active" : ""}`}
+                  id="odysseyForm">
+                  {this.getOdysseyForm()}
+                </div>
+                <div role="tabpanel" className={`tab-pane ${this.state.mode === "similarity" ? "active" : ""}`}
+                  id="similarityForm">
+                  {this.getSimilarityForm()}
+                </div>
+              </div>
+            </div>
             <br/>
           </div>
           <div className="col-md-4" style={{ position: "-webkit-sticky", position: "sticky", top: 20 }}>
@@ -325,5 +399,3 @@ catch (err)
   console.error("Error parsing props:", err);
 }
 ReactDOM.render(<MusicalOdyssey {...reactProps}/>, domContainer);
-
-

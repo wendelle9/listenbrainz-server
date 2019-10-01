@@ -158,8 +158,8 @@ def odyssey_debug(mbid):
                     "artist_names": arnames,
                     "distance": dist[1],
                 },
-                "artist_name": recordings[mbid]['artists'][0]['name'], 
-                "track_name": recordings[mbid]['name'], 
+                "artist_name": recordings[mbid]['artists'][0]['name'],
+                "track_name": recordings[mbid]['name'],
             }
         })
 
@@ -175,9 +175,9 @@ def odyssey(mbid0, mbid1):
     
     metric = request.args.get("metric", "mfccs")
     if mbid0 and not mbid1:
-        debug = True
+        mode = "similarity"
     else:
-        debug = False
+        mode = "odyssey"
     user_data = {
         "id": current_user.id,
         "name": current_user.musicbrainz_id,
@@ -193,7 +193,7 @@ def odyssey(mbid0, mbid1):
         "mbid1" : mbid1,
         "metric" : metric,
         "metrics" : [ "mfccs", "mfccsw", "gfccs", "gfccsw", "bpm", "key", "onsetrate", "moods", "instruments", "dortmund", "rosamerica", "tzanetakis" ],
-        "debug" : debug
+        "mode" : mode
     }
 
     return render_template(
