@@ -10,6 +10,7 @@ import {SpotifyPlayer} from './spotify-player.jsx';
 import {isEqual as _isEqual} from 'lodash';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEllipsisV } from '@fortawesome/free-solid-svg-icons'
+import {CopyToClipboard} from 'react-copy-to-clipboard';
 
 class MusicalOdyssey extends React.Component {
 
@@ -35,9 +36,10 @@ class MusicalOdyssey extends React.Component {
     this.playListen = this.playListen.bind(this);
     this.handleInputChange = this.handleInputChange.bind(this);
     this.handleOdysseyFormSubmit = this.handleOdysseyFormSubmit.bind(this);
-    this.handlesimilarityFormSubmit = this.handlesimilarityFormSubmit.bind(this);
+    this.handleSimilarityFormSubmit = this.handleSimilarityFormSubmit.bind(this);
     this.getOdysseyForm = this.getOdysseyForm.bind(this);
     this.getSimilarityForm = this.getSimilarityForm.bind(this);
+    this.navigateToSimilarTrack = this.navigateToSimilarTrack.bind(this);
     this.spotifyPlayer = React.createRef();
 
     this.APIService = new APIService(props.api_url || `${window.location.origin}/1`);
@@ -45,7 +47,7 @@ class MusicalOdyssey extends React.Component {
       this.handleOdysseyFormSubmit();
     }
     else if(this.state.mode === "similarity" && this.state.mbid0) {
-      this.handlesimilarityFormSubmit();
+      this.handleSimilarityFormSubmit();
     }
   }
 
@@ -121,7 +123,7 @@ class MusicalOdyssey extends React.Component {
     .catch(error => this.newAlert("danger",`Error (${error.status})`, error.message))
   }
   
-  handlesimilarityFormSubmit(event) {
+  handleSimilarityFormSubmit(event) {
     console.debug(`Calling  API to get tracks similar to MBID ${this.state.mbid0} according to metric ${this.state.metric}, limited to ${this.state.limit} tracks`);
     event && event.preventDefault();
     this.APIService.getSimilarTracksPlaylist(this.state.mbid0,this.state.metric,this.state.limit)
@@ -184,7 +186,7 @@ class MusicalOdyssey extends React.Component {
   
   getSimilarityForm() {
    return (
-      <form onSubmit={this.handlesimilarityFormSubmit}>
+      <form onSubmit={this.handleSimilarityFormSubmit}>
         <p>Enter a recording MBID to query for similar tracks according to a the selected metric</p>
         <table className="table table-border table-striped">
             <tbody>
@@ -234,6 +236,18 @@ class MusicalOdyssey extends React.Component {
     </form>)
   }
   
+  navigateToSimilarTrack(recordingMBID) {
+    this.setState({mbid0: recordingMBID}, () => {
+      switch (this.state.mode) {
+        case "odyssey":
+          this.handleOdysseyFormSubmit();
+          break;
+        case "similarity":
+          this.handleSimilarityFormSubmit();
+          break;
+      }
+    });
+  }
   
   render() {
 
@@ -274,6 +288,7 @@ class MusicalOdyssey extends React.Component {
                   <tbody>
                     {this.state.listens
                       .map((listen, index) => {
+                        const recordingMBID = _.get(listen,"track_metadata.additional_info.recording_mbid");
                         return (
                           <tr key={index}
                             onDoubleClick={this.playListen.bind(this, listen)}
@@ -282,16 +297,29 @@ class MusicalOdyssey extends React.Component {
                             <td>{getArtistLink(listen)}</td>
                             <td>{_.get(listen,"track_metadata.additional_info.distance","—")}</td>
                             <td>
-                              <div class="btn-group">
-                                <button type="button" class="btn btn-default dropdown-toggle"
+                              <div className="btn-group">
+                                <button disabled={!recordingMBID} type="button" className="btn btn-link dropdown-toggle"
                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                   <FontAwesomeIcon icon={faEllipsisV}/>
                                 </button>
-                                <ul class="dropdown-menu">
-                                  <li><a href="#">Copy recording BBID</a></li>
-                                  <li><a href="#">Open in MusicBrainz</a></li>
-                                  <li role="separator" class="divider"></li>
-                                  <li><a href="#">Get similar tracks</a></li>
+                                <ul className="dropdown-menu">
+                                  <li>
+                                    <CopyToClipboard text={recordingMBID}>
+                                      <a>Copy recording MBID</a>
+                                    </CopyToClipboard>
+                                  </li>
+                                  <li>
+                                    <a href={`https://musicbrainz.org/recording/${recordingMBID}`}
+                                      target="_blank">
+                                      Open in MusicBrainz</a>
+                                  </li>
+                                  <li role="separator" className="divider"></li>
+                                  <li>
+                                    <a
+                                      onClick={this.navigateToSimilarTrack.bind(this, recordingMBID)}>
+                                        Explore from this track
+                                    </a>
+                                  </li>
                                 </ul>
                               </div>
                             </td>
@@ -371,5 +399,3 @@ catch (err)
   console.error("Error parsing props:", err);
 }
 ReactDOM.render(<MusicalOdyssey {...reactProps}/>, domContainer);
-
-
