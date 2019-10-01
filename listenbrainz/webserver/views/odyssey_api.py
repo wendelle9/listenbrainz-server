@@ -18,7 +18,8 @@ SIMILARITY_SERVER_URL = "http://similarity.acousticbrainz.org:8088/api/v1/path/"
 @ratelimit()
 def odyssey(mbid0, mbid1):
  
-    steps = _parse_int_arg("steps")
+#    steps = _parse_int_arg("steps")
+    metric = request.args.get("metric", "mfccs")
 
     if not is_valid_uuid(mbid0) or not is_valid_uuid(mbid1):
         raise APIBadRequest("One or both of the recording MBIDs are invalid.")
@@ -54,8 +55,8 @@ def odyssey(mbid0, mbid1):
                     "artist_mbids": armbids,
                     "artist_names": arnames,
                 },
-                "artist_name": recordings[mbid]['artists'][0]['name'], 
-                "track_name": recordings[mbid]['name'], 
+                "artist_name": recordings[mbid]['artists'][0]['name'],
+                "track_name": recordings[mbid]['name'],
             }
         })
 
@@ -123,8 +124,8 @@ def odyssey_debug(mbid):
                     "artist_names": arnames,
                     "distance": dist[1],
                 },
-                "artist_name": recordings[mbid]['artists'][0]['name'], 
-                "track_name": recordings[mbid]['name'], 
+                "artist_name": recordings[mbid]['artists'][0]['name'],
+                "track_name": recordings[mbid]['name'],
             }
         })
 
