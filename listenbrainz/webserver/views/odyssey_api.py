@@ -1,5 +1,6 @@
 import ujson
 import requests
+from operator import itemgetter
 from flask import Blueprint, request, jsonify, current_app, render_template
 from flask_login import current_user, login_required
 from listenbrainz.webserver.errors import APIInternalServerError, APINotFound, APIBadRequest
@@ -24,7 +25,7 @@ def odyssey(mbid0, mbid1):
     if not is_valid_uuid(mbid0) or not is_valid_uuid(mbid1):
         raise APIBadRequest("One or both of the recording MBIDs are invalid.")
 
-    url = SIMILARITY_SERVER_URL + "similarity_path/" + mbid0 + "/" + mbid1 + "?metric=" + metric
+    url = SIMILARITY_SERVER_URL + "similarity_path/debug/" + mbid0 + "/" + mbid1
     current_app.logger.error(url)
 
     r = requests.get(url)
@@ -38,11 +39,43 @@ def odyssey(mbid0, mbid1):
     if not data:
         raise APINotFound("A path between the two given tracks could not be found.")
 
-    recordings = mb_rec.get_many_recordings_by_mbid(data, includes=["artists"])
+    hist = {}
+    for metric in data.keys():
+        for recording in data[metric]['recordings']:
+            try:
+                hist[recording[0]]['count'] += 1
+            except KeyError:
+                hist[recording[0]] = {}
+                hist[recording[0]]['count'] = 1
+                hist[recording[0]]['dist'] = recording[1]
+
+
+    recordings = []
+    for recording in hist.keys():
+        recordings.append({ 'count' : hist[recording]['count'], 'recording' : recording, 'dist' : hist[recording]['dist'] })
+
+    sorted_recordings = sorted(recordings, key=itemgetter('count'), reverse = True)
+
+    lookup_recordings = []
+    for recording in sorted_recordings[:100]:
+       lookup_recordings.append(recording['recording'])
+
+    while True:
+        try:
+            mb_recordings = mb_rec.get_many_recordings_by_mbid(lookup_recordings, includes=["artists"])
+            break
+        except NoDataFoundException as err:
+            missing = ujson.loads(str(err)[33:].replace("'", '"'))
+            new_lookup = []
+            for rec in lookup_recordings:
+                if rec not in missing:
+                    new_lookup.append(rec)
+            lookup_recordings = new_lookup
+
     mogged = []
-    for mbid in recordings.keys():
-        armbids = [ a['id'] for a in recordings[mbid]['artists'] ]
-        arnames = [ a['name'] for a in recordings[mbid]['artists'] ]
+    for mbid in mb_recordings.keys():
+        armbids = [ a['id'] for a in mb_recordings[mbid]['artists'] ]
+        arnames = [ a['name'] for a in mb_recordings[mbid]['artists'] ]
         mogged.append({
             "track_metadata": {
                 "additional_info": {
@@ -50,13 +83,14 @@ def odyssey(mbid0, mbid1):
                     "rating": "",
                     "recording_mbid": mbid,
                     "release_msid": "",
-                    "source": "",
+                    "dist": "%f" % hist[mbid]['dist'],
+                    "count": "%d" % hist[mbid]['count'],
                     "track_number": "",
                     "artist_mbids": armbids,
                     "artist_names": arnames,
                 },
-                "artist_name": recordings[mbid]['artists'][0]['name'], 
-                "track_name": recordings[mbid]['name'], 
+                "artist_name": mb_recordings[mbid]['artists'][0]['name'], 
+                "track_name": mb_recordings[mbid]['name'], 
             }
         })
 
