@@ -281,6 +281,7 @@ class MusicalOdyssey extends React.Component {
                       <th>Track</th>
                       <th>Artist</th>
                       <th>Distance</th>
+                      <th>Count</th>
                       <th width="50px"></th>
                       <th width="50px"></th>
                     </tr>
@@ -295,7 +296,8 @@ class MusicalOdyssey extends React.Component {
                             className={`listen ${this.isCurrentListen(listen) ? 'info' : ''}`}  >
                             <td>{getTrackLink(listen)}</td>
                             <td>{getArtistLink(listen)}</td>
-                            <td>{_.get(listen,"track_metadata.additional_info.distance","—")}</td>
+                            <td>{_.get(listen,"track_metadata.additional_info.dist","—")}</td>
+                            <td>{_.get(listen,"track_metadata.additional_info.count","—")}</td>
                             <td>
                               <div className="btn-group">
                                 <button disabled={!recordingMBID} type="button" className="btn btn-link dropdown-toggle"
