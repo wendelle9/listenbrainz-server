@@ -111,7 +111,7 @@ export default class APIService {
       throw new SyntaxError('Expected a recordingMBID');
     }
 
-    let query = `${this.APIBaseURI}/similar/${recordingMBID}`;
+    let query = `${this.APIBaseURI}/odyssey/similar/${recordingMBID}`;
 
     const queryParams = [];
     if(!isNil(metricsArray)){
