@@ -47,12 +47,16 @@ def odyssey(mbid0, mbid1):
             except KeyError:
                 hist[recording[0]] = {}
                 hist[recording[0]]['count'] = 1
+                hist[recording[0]]['metric'] = metric
                 hist[recording[0]]['dist'] = recording[1]
 
 
     recordings = []
     for recording in hist.keys():
-        recordings.append({ 'count' : hist[recording]['count'], 'recording' : recording, 'dist' : hist[recording]['dist'] })
+        recordings.append({ 'count' : hist[recording]['count'], 
+                            'metric' : hist[recording]['metric'],
+                            'recording' : recording, 
+                            'dist' : hist[recording]['dist'] })
 
     sorted_recordings = sorted(recordings, key=itemgetter('count'), reverse = True)
 
@@ -85,6 +89,7 @@ def odyssey(mbid0, mbid1):
                     "release_msid": "",
                     "dist": "%f" % hist[mbid]['dist'],
                     "count": "%d" % hist[mbid]['count'],
+                    "metric": hist[mbid]['metric'],
                     "track_number": "",
                     "artist_mbids": armbids,
                     "artist_names": arnames,
