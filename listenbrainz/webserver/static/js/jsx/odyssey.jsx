@@ -21,7 +21,7 @@ class MusicalOdyssey extends React.Component {
       listens: props.listens || [],
       currentListen : null,
       direction: "down",
-      mode: props.mode || "odyssey",
+      mode: props.mode || "similarity",
       mbid0: props.mbid0 || "",
       mbid1: props.mbid1 || "",
       metricsArray: props.metricsArray || [],
@@ -367,25 +367,25 @@ class MusicalOdyssey extends React.Component {
             }
             <div className="tabbable">
               <ul className="nav nav-tabs">
-                <li className={this.state.mode === "odyssey"? "active" : ""}>
-                  <a href="#odysseyForm"
-                  aria-controls="home" role="tab"
-                  data-toggle="tab">Odyssey</a>
-                </li>
                 <li className={this.state.mode === "similarity"? "active" : ""}>
                   <a href="#similarityForm"
                   aria-controls="home" role="tab"
                   data-toggle="tab">Track similarity</a>
                 </li>
+                <li className={this.state.mode === "odyssey"? "active" : ""}>
+                  <a href="#odysseyForm"
+                  aria-controls="home" role="tab"
+                  data-toggle="tab">Odyssey</a>
+                </li>
               </ul>
               <div className="tab-content">
-                <div role="tabpanel" className={`tab-pane ${this.state.mode === "odyssey" ? "active" : ""}`}
-                  id="odysseyForm">
-                  {this.getOdysseyForm()}
-                </div>
                 <div role="tabpanel" className={`tab-pane ${this.state.mode === "similarity" ? "active" : ""}`}
                   id="similarityForm">
                   {this.getSimilarityForm()}
+                </div>
+                <div role="tabpanel" className={`tab-pane ${this.state.mode === "odyssey" ? "active" : ""}`}
+                  id="odysseyForm">
+                  {this.getOdysseyForm()}
                 </div>
               </div>
             </div>
