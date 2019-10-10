@@ -3,9 +3,10 @@
 import {getArtistLink, getPlayButton, getSpotifyEmbedUriFromListen, getTrackLink} from './utils.jsx';
 
 import APIService from './api-service';
-import { AlertList } from 'react-bs-notifier';
 import React from 'react';
 import ReactDOM from 'react-dom';
+import Select from 'react-select';
+import { AlertList } from 'react-bs-notifier';
 import {SpotifyPlayer} from './spotify-player.jsx';
 import {isEqual as _isEqual} from 'lodash';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -117,29 +118,22 @@ class MusicalOdyssey extends React.Component {
     });
   }
 
-  handleMetricSelectChange(event) {
-    let selectedMetricsArray = [...event.target.selectedOptions]
-      .filter(o => o.selected)
-      .map(o => o.value);
-    if (selectedMetricsArray.includes("all")) {
-      selectedMetricsArray = ["all"];
-    }
+  handleMetricSelectChange(selectedMetrics) {
     this.setState({
-      metricsArray: selectedMetricsArray
-    })
+      metricsArray: selectedMetrics
+    });
   }
+
   getMetricsMultipleSelect() {
-    return (<select
-    multiple={true}
-    className="form-control"
-    id="metrics"
-    value={this.state.metricsArray}
-    onChange={this.handleMetricSelectChange} >
-      <option key="all" value="all">Combine all metrics</option>
-      {(this.props.metrics || []).map(metric =>
-        <option key={metric} value={metric}>{metric}</option>
-      )}
-    </select>);
+    return (<Select
+      defaultValue={this.state.metricsArray}
+      isMulti
+      name="metrics"
+      options={this.props.metrics}
+      getOptionValue={string => string}
+      getOptionLabel={string => string}
+      onChange={this.handleMetricSelectChange}
+    />);
   }
 
   handleOdysseyFormSubmit(event) {
