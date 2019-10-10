@@ -84,7 +84,7 @@ export default class APIService {
     return result.user_token;
   }
   
-  async getOdysseyPlaylist(startTrack, endTrack, metric) {
+  async getOdysseyPlaylist(startTrack, endTrack, metricsArray) {
     
     if(isNil(startTrack) || isNil(endTrack) || startTrack === "" || endTrack === "") {
       throw new SyntaxError('Expected a startTrack and an endTrack');
@@ -92,8 +92,8 @@ export default class APIService {
 
     let query = `${this.APIBaseURI}/odyssey/${startTrack}/${endTrack}`;
 
-    if(!isNil(metric)){
-      query += `?metric=${metric}`
+    if(!isNil(metricsArray)){
+      query += `?metrics=${metricsArray}`
     }
 
     const response = await fetch(query, {
@@ -106,7 +106,7 @@ export default class APIService {
     return result.payload
   }
 
-  async getSimilarTracksPlaylist(recordingMBID, metric, limit) {
+  async getSimilarTracksPlaylist(recordingMBID, metricsArray, limit) {
     if(isNil(recordingMBID) || recordingMBID === "") {
       throw new SyntaxError('Expected a recordingMBID');
     }
@@ -114,8 +114,8 @@ export default class APIService {
     let query = `${this.APIBaseURI}/odyssey/debug/${recordingMBID}`;
 
     const queryParams = [];
-    if(!isNil(metric)){
-      queryParams.push(`metric=${metric}`)
+    if(!isNil(metricsArray)){
+      queryParams.push(`metrics=${metricsArray}`)
     }
     if(!isNil(limit) && isFinite(Number(limit))){
       queryParams.push(`limit=${limit}`)

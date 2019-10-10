@@ -24,7 +24,7 @@ class MusicalOdyssey extends React.Component {
       mode: props.mode || "odyssey",
       mbid0: props.mbid0 || "",
       mbid1: props.mbid1 || "",
-      metric: props.metric || "",
+      metricsArray: props.metricsArray || [],
       limit: props.limit || 20
     };
     this.handleCurrentListenChange = this.handleCurrentListenChange.bind(this);
@@ -35,6 +35,8 @@ class MusicalOdyssey extends React.Component {
     this.onAlertDismissed = this.onAlertDismissed.bind(this);
     this.playListen = this.playListen.bind(this);
     this.handleInputChange = this.handleInputChange.bind(this);
+    this.getMetricsMultipleSelect = this.getMetricsMultipleSelect.bind(this);
+    this.handleMetricSelectChange = this.handleMetricSelectChange.bind(this);
     this.handleOdysseyFormSubmit = this.handleOdysseyFormSubmit.bind(this);
     this.handleSimilarityFormSubmit = this.handleSimilarityFormSubmit.bind(this);
     this.getOdysseyForm = this.getOdysseyForm.bind(this);
@@ -115,18 +117,43 @@ class MusicalOdyssey extends React.Component {
     });
   }
 
+  handleMetricSelectChange(event) {
+    let selectedMetricsArray = [...event.target.selectedOptions]
+      .filter(o => o.selected)
+      .map(o => o.value);
+    if (selectedMetricsArray.includes("all")) {
+      selectedMetricsArray = ["all"];
+    }
+    this.setState({
+      metricsArray: selectedMetricsArray
+    })
+  }
+  getMetricsMultipleSelect() {
+    return (<select
+    multiple={true}
+    className="form-control"
+    id="metrics"
+    value={this.state.metricsArray}
+    onChange={this.handleMetricSelectChange} >
+      <option key="all" value="all">Combine all metrics</option>
+      {(this.props.metrics || []).map(metric =>
+        <option key={metric} value={metric}>{metric}</option>
+      )}
+    </select>);
+  }
+
   handleOdysseyFormSubmit(event) {
-    console.debug(`Calling API with MBIDS ${this.state.mbid0} and ${this.state.mbid1}, metric ${this.state.metric}`);
+    console.debug(`Calling API with MBIDS ${this.state.mbid0} and ${this.state.mbid1}, metric ${this.state.metricsArray}`);
     event && event.preventDefault();
-    this.APIService.getOdysseyPlaylist(this.state.mbid0,this.state.mbid1,this.state.metric)
+    this.APIService.getOdysseyPlaylist(this.state.mbid0,this.state.mbid1,this.state.metricsArray)
     .then(listens => this.setState({listens: listens || []}))
     .catch(error => this.newAlert("danger",`Error (${error.status})`, error.message))
   }
   
   handleSimilarityFormSubmit(event) {
-    console.debug(`Calling  API to get tracks similar to MBID ${this.state.mbid0} according to metric ${this.state.metric}, limited to ${this.state.limit} tracks`);
+    console.debug(`Calling  API to get tracks similar to MBID ${this.state.mbid0} according to metric ${this.state.metricsArray}, limited to ${this.state.limit} tracks`);
     event && event.preventDefault();
-    this.APIService.getSimilarTracksPlaylist(this.state.mbid0,this.state.metric,this.state.limit)
+    this.APIService.getSimilarTracksPlaylist(this.state.mbid0,this.state.metricsArray,this.state.limit)
     //Do we need to order returned tracks by distance?
     .then(listens => this.setState({listens: _.sortBy(listens || [], 'track_metadata.additional_info.distance')}))
     .catch(error => this.newAlert("danger",`Error (${error.status})`, error.message))
@@ -135,7 +162,7 @@ class MusicalOdyssey extends React.Component {
   getOdysseyForm() {
    return (
       <form onSubmit={this.handleOdysseyFormSubmit}>
-        <p>Enter two recording MBIDs to create a playlist</p>
+        <p className="help-block">Enter two recording MBIDs to create a playlist</p>
         <table className="table table-border table-striped">
             <tbody>
             <tr>
@@ -161,17 +188,9 @@ class MusicalOdyssey extends React.Component {
                 </td>
             </tr>
             <tr>
-                <td><label htmlFor="metric">Metric:</label></td>
+                <td><label htmlFor="metric">Metrics:</label></td>
                 <td>
-                    <select
-                    className="form-control"
-                    id="metric"
-                    value={this.state.metric}
-                    onChange={this.handleInputChange} >
-                      {(this.props.metrics || []).map(metric =>
-                        <option key={metric} value={metric}>{metric}</option>
-                      )}
-                    </select>
+                    {this.getMetricsMultipleSelect()}
                 </td>
             </tr>
             <tr>
@@ -187,7 +206,7 @@ class MusicalOdyssey extends React.Component {
   getSimilarityForm() {
    return (
       <form onSubmit={this.handleSimilarityFormSubmit}>
-        <p>Enter a recording MBID to query for similar tracks according to a the selected metric</p>
+        <p className="help-block">Enter a recording MBID to query for similar tracks according to a the selected metric</p>
         <table className="table table-border table-striped">
             <tbody>
             <tr>
@@ -202,17 +221,9 @@ class MusicalOdyssey extends React.Component {
                 </td>
             </tr>
             <tr>
-                <td><label htmlFor="metric">Metric:</label></td>
+                <td><label htmlFor="metric">Metrics:</label></td>
                 <td>
-                    <select
-                    className="form-control"
-                    id="metric"
-                    value={this.state.metric}
-                    onChange={this.handleInputChange} >
-                      {(this.props.metrics || []).map(metric =>
-                        <option key={metric} value={metric}>{metric}</option>
-                      )}
-                    </select>
+                  {this.getMetricsMultipleSelect()}
                 </td>
             </tr>
             <tr>
@@ -284,9 +295,11 @@ class MusicalOdyssey extends React.Component {
                 _.get(listen,"track_metadata.additional_info.recording_mbid") === this.state.mbid0))
                   || this.state.mbid0 }
               <br/>
-              to {getTrackLink(this.state.listens.find(listen =>
-                _.get(listen,"track_metadata.additional_info.recording_mbid") === this.state.mbid1))
-                || this.state.mbid1 }
+              {this.state.mode === "odyssey" &&
+                `to ${getTrackLink(this.state.listens.find(listen =>
+                  _.get(listen,"track_metadata.additional_info.recording_mbid") === this.state.mbid1))
+                  || this.state.mbid1}`
+              }
             </p>
             {this.state.listens.length > 0 &&
               <div>
