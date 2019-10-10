@@ -326,7 +326,8 @@ class MusicalOdyssey extends React.Component {
                             <td>{getTrackLink(listen)}</td>
                             <td>{getArtistLink(listen)}</td>
                             {availableMetrics.map(metricName =>{
-                              return <th>{_.get(listen,`track_metadata.additional_info.metrics.${metricName}`,"—")}</th>
+                              const value = _.get(listen,`track_metadata.additional_info.metrics.${metricName}`,"—");
+                              return <th>{_.isNumber(value) ? _.round(value,6) : value}</th>
                             })}
                             <td>
                               <div className="btn-group">
