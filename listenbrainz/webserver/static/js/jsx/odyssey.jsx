@@ -258,6 +258,13 @@ class MusicalOdyssey extends React.Component {
       }
       return null;
     }
+    let availableMetrics = this.state.listens.map(listen => {
+      const metricsObject = _.get(listen,"track_metadata.additional_info.metrics");
+      if(metricsObject){
+        return Object.keys(metricsObject);
+      }
+    });
+    availableMetrics =  _.uniq(_.flatten(availableMetrics));
 
     return (
       <div>
@@ -288,8 +295,9 @@ class MusicalOdyssey extends React.Component {
                     <tr>
                       <th>Track</th>
                       <th>Artist</th>
-                      <th>Distance</th>
-                      <th>Count</th>
+                      {availableMetrics.map(metricName =>{
+                        return <th>{metricName}</th>
+                      })}
                       <th width="50px"></th>
                       <th width="50px"></th>
                     </tr>
@@ -304,8 +312,9 @@ class MusicalOdyssey extends React.Component {
                             className={`listen ${this.isCurrentListen(listen) ? 'info' : ''}`}  >
                             <td>{getTrackLink(listen)}</td>
                             <td>{getArtistLink(listen)}</td>
-                            <td>{_.get(listen,"track_metadata.additional_info.dist","—")}</td>
-                            <td>{_.get(listen,"track_metadata.additional_info.count","—")}</td>
+                            {availableMetrics.map(metricName =>{
+                              return <th>{_.get(listen,`track_metadata.additional_info.metrics.${metricName}`,"—")}</th>
+                            })}
                             <td>
                               <div className="btn-group">
                                 <button disabled={!recordingMBID} type="button" className="btn btn-link dropdown-toggle"
