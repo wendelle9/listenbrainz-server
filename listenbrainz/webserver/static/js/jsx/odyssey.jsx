@@ -3,9 +3,10 @@
 import {getArtistLink, getPlayButton, getSpotifyEmbedUriFromListen, getTrackLink} from './utils.jsx';
 
 import APIService from './api-service';
-import { AlertList } from 'react-bs-notifier';
 import React from 'react';
 import ReactDOM from 'react-dom';
+import Select from 'react-select';
+import { AlertList } from 'react-bs-notifier';
 import {SpotifyPlayer} from './spotify-player.jsx';
 import {isEqual as _isEqual} from 'lodash';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -21,7 +22,7 @@ class MusicalOdyssey extends React.Component {
       listens: props.listens || [],
       currentListen : null,
       direction: "down",
-      mode: props.mode || "odyssey",
+      mode: props.mode || "similarity",
       mbid0: props.mbid0 || "",
       mbid1: props.mbid1 || "",
       metricsArray: props.metricsArray || [],
@@ -117,29 +118,22 @@ class MusicalOdyssey extends React.Component {
     });
   }
 
-  handleMetricSelectChange(event) {
-    let selectedMetricsArray = [...event.target.selectedOptions]
-      .filter(o => o.selected)
-      .map(o => o.value);
-    if (selectedMetricsArray.includes("all")) {
-      selectedMetricsArray = ["all"];
-    }
+  handleMetricSelectChange(selectedMetrics) {
     this.setState({
-      metricsArray: selectedMetricsArray
-    })
+      metricsArray: selectedMetrics
+    });
   }
+
   getMetricsMultipleSelect() {
-    return (<select
-    multiple={true}
-    className="form-control"
-    id="metrics"
-    value={this.state.metricsArray}
-    onChange={this.handleMetricSelectChange} >
-      <option key="all" value="all">Combine all metrics</option>
-      {(this.props.metrics || []).map(metric =>
-        <option key={metric} value={metric}>{metric}</option>
-      )}
-    </select>);
+    return (<Select
+      defaultValue={this.state.metricsArray}
+      isMulti
+      name="metrics"
+      options={this.props.metrics}
+      getOptionValue={string => string}
+      getOptionLabel={string => string}
+      onChange={this.handleMetricSelectChange}
+    />);
   }
 
   handleOdysseyFormSubmit(event) {
@@ -163,7 +157,7 @@ class MusicalOdyssey extends React.Component {
    return (
       <form onSubmit={this.handleOdysseyFormSubmit}>
         <p className="help-block">Enter two recording MBIDs to create a playlist</p>
-        <table className="table table-border table-striped">
+        <table className="table table-striped" style={{'whiteSpace': 'nowrap'}}>
             <tbody>
             <tr>
                 <td><label htmlFor="mbid0">Start track:</label></td>
@@ -207,7 +201,7 @@ class MusicalOdyssey extends React.Component {
    return (
       <form onSubmit={this.handleSimilarityFormSubmit}>
         <p className="help-block">Enter a recording MBID to query for similar tracks according to a the selected metric</p>
-        <table className="table table-border table-striped">
+        <table className="table table-striped" style={{'whiteSpace': 'nowrap'}}>
             <tbody>
             <tr>
                 <td><label htmlFor="mbid0">Recording MBID:</label></td>
@@ -326,7 +320,8 @@ class MusicalOdyssey extends React.Component {
                             <td>{getTrackLink(listen)}</td>
                             <td>{getArtistLink(listen)}</td>
                             {availableMetrics.map(metricName =>{
-                              return <th>{_.get(listen,`track_metadata.additional_info.metrics.${metricName}`,"—")}</th>
+                              const value = _.get(listen,`track_metadata.additional_info.metrics.${metricName}`,"—");
+                              return <th>{_.isNumber(value) ? _.round(value,6) : value}</th>
                             })}
                             <td>
                               <div className="btn-group">
@@ -366,25 +361,25 @@ class MusicalOdyssey extends React.Component {
             }
             <div className="tabbable">
               <ul className="nav nav-tabs">
-                <li className={this.state.mode === "odyssey"? "active" : ""}>
-                  <a href="#odysseyForm"
-                  aria-controls="home" role="tab"
-                  data-toggle="tab">Odyssey</a>
-                </li>
                 <li className={this.state.mode === "similarity"? "active" : ""}>
                   <a href="#similarityForm"
                   aria-controls="home" role="tab"
                   data-toggle="tab">Track similarity</a>
                 </li>
+                <li className={this.state.mode === "odyssey"? "active" : ""}>
+                  <a href="#odysseyForm"
+                  aria-controls="home" role="tab"
+                  data-toggle="tab">Odyssey</a>
+                </li>
               </ul>
               <div className="tab-content">
-                <div role="tabpanel" className={`tab-pane ${this.state.mode === "odyssey" ? "active" : ""}`}
-                  id="odysseyForm">
-                  {this.getOdysseyForm()}
-                </div>
                 <div role="tabpanel" className={`tab-pane ${this.state.mode === "similarity" ? "active" : ""}`}
                   id="similarityForm">
                   {this.getSimilarityForm()}
+                </div>
+                <div role="tabpanel" className={`tab-pane ${this.state.mode === "odyssey" ? "active" : ""}`}
+                  id="odysseyForm">
+                  {this.getOdysseyForm()}
                 </div>
               </div>
             </div>
