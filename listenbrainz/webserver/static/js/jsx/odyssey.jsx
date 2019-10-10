@@ -157,7 +157,7 @@ class MusicalOdyssey extends React.Component {
    return (
       <form onSubmit={this.handleOdysseyFormSubmit}>
         <p className="help-block">Enter two recording MBIDs to create a playlist</p>
-        <table className="table table-border table-striped">
+        <table className="table table-striped" style={{'whiteSpace': 'nowrap'}}>
             <tbody>
             <tr>
                 <td><label htmlFor="mbid0">Start track:</label></td>
@@ -201,7 +201,7 @@ class MusicalOdyssey extends React.Component {
    return (
       <form onSubmit={this.handleSimilarityFormSubmit}>
         <p className="help-block">Enter a recording MBID to query for similar tracks according to a the selected metric</p>
-        <table className="table table-border table-striped">
+        <table className="table table-striped" style={{'whiteSpace': 'nowrap'}}>
             <tbody>
             <tr>
                 <td><label htmlFor="mbid0">Recording MBID:</label></td>
