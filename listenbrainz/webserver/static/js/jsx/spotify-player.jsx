@@ -53,13 +53,9 @@ export class SpotifyPlayer extends React.Component {
     this.stopPlayerStateTimer = this.stopPlayerStateTimer.bind(this);
     this.togglePlay = this.togglePlay.bind(this);
     this.toggleDirection = this.toggleDirection.bind(this);
-    // Do an initial check of the spotify token permissions (scopes) before loading the SDK library
-    this.checkSpotifyToken(this.state.accessToken, this.state.permission).then(success => {
-      if(success){
-        window.onSpotifyWebPlaybackSDKReady = this.connectSpotifyPlayer;
-        const spotifyPlayerSDKLib = require('../lib/spotify-player-sdk-1.7.1');
-      }
-    })
+    // Do an initial check of the spotify token permissions (scopes)
+    this.checkSpotifyToken(this.state.accessToken, this.state.permission)
+    window.onSpotifyWebPlaybackSDKReady = this.connectSpotifyPlayer;
     // ONLY FOR TESTING PURPOSES
     window.disconnectSpotifyPlayer = this.disconnectSpotifyPlayer;
   }

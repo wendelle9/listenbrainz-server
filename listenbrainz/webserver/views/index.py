@@ -155,7 +155,9 @@ def recent_listens():
     return render_template("index/recent.html",
         props=ujson.dumps(props),
         mode='recent',
-        active_section='listens')
+        active_section='listens',
+        spotify_data=spotify_user
+        )
 
 
 
