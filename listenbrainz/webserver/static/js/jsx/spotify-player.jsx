@@ -53,6 +53,7 @@ export class SpotifyPlayer extends React.Component {
     this.stopPlayerStateTimer = this.stopPlayerStateTimer.bind(this);
     this.togglePlay = this.togglePlay.bind(this);
     this.toggleDirection = this.toggleDirection.bind(this);
+    this.seekToPositionMs = this.seekToPositionMs.bind(this);
     // Do an initial check of the spotify token permissions (scopes)
     this.checkSpotifyToken(this.state.accessToken, this.state.permission)
     window.onSpotifyWebPlaybackSDKReady = this.connectSpotifyPlayer;
@@ -422,6 +423,10 @@ export class SpotifyPlayer extends React.Component {
     const sortedImages = track.album.images.sort((a, b) => a.height > b.height ? -1 : 1);
     return sortedImages[0] && <img className="img-responsive" src={sortedImages[0].url} />;
   }
+  
+  seekToPositionMs(msTimecode){
+    this._spotifyPlayer.seek(msTimecode);
+  }
 
   render() {
     return (
@@ -439,6 +444,7 @@ export class SpotifyPlayer extends React.Component {
           }
           progress_ms={this.state.progressMs}
           duration_ms={this.state.durationMs}
+          seekToPositionMs={this.seekToPositionMs}
         >
           {this.getAlbumArt()}
         </PlaybackControls>
