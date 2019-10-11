@@ -31,8 +31,9 @@ export class PlaybackControls extends React.Component {
   
   
   seekToTime(event) {
-    const progressBarWidth = event.currentTarget.clientWidth
-    const musicPlayerXOffset = event.currentTarget.parentElement.parentElement.parentElement.offsetLeft;
+    const progressBarBoundingRect = event.currentTarget.getBoundingClientRect();
+    const progressBarWidth = progressBarBoundingRect.width
+    const musicPlayerXOffset = progressBarBoundingRect.x;
     const absoluteClickXPos = event.clientX;
     const relativeClickXPos = absoluteClickXPos - musicPlayerXOffset;
     const percentPos = relativeClickXPos / progressBarWidth;
@@ -53,7 +54,6 @@ export class PlaybackControls extends React.Component {
             <h3 className="artist-name">{this.props.artistName}</h3>
             <div className="progress" onClick={this.seekToTime}>
               <div className="progress-bar" style={{ width: `${this.props.progress_ms * 100 / this.props.duration_ms}%` }}></div>
-              {/* <div style={{ width: "100%" }}></div> */}
             </div>
           </div>
           <div className="controls">
