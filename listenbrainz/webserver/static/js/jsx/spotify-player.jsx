@@ -46,7 +46,7 @@ export class SpotifyPlayer extends React.Component {
     this.isCurrentListen = this.isCurrentListen.bind(this);
     this.playListen = this.playListen.bind(this);
     this.playNextTrack = this.playNextTrack.bind(this);
-    this.debouncedPlayNextTrack = _.debounce(this.playNextTrack, 500, {leading:false, trailing:true});
+    this.debouncedPlayNextTrack = _.debounce(this.playNextTrack, 300, {leading:false, trailing:true});
     this.playPreviousTrack = this.playPreviousTrack.bind(this);
     this.search_and_play_track = this.search_and_play_track.bind(this);
     this.startPlayerStateTimer = this.startPlayerStateTimer.bind(this);
@@ -397,7 +397,7 @@ export class SpotifyPlayer extends React.Component {
     }
     // How do we accurately detect the end of a song?
     // From https://github.com/spotify/web-playback-sdk/issues/35#issuecomment-469834686
-    if (position === 0 && paused === true)
+    if (position === 0 && paused === true && _.get(state,'disallows.pausing'))
     {
       // Track finished, play next track
       console.debug("Detected Spotify end of track, playing next track");
