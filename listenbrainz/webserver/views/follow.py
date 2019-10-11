@@ -60,4 +60,5 @@ def follow(user_list):
         user=current_user,
         follow_list=follow_list_members,
         active_section='listens',
+        spotify_data=spotify_data
     )

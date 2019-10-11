@@ -82,3 +82,20 @@ export function getPlayButton(listen, onClickFunction) {
     </button>
   )
 }
+
+export function millisecondsToHumanReadable(milliseconds) {
+  var seconds = milliseconds / 1000;
+  var numyears = Math.floor(seconds / 31536000);
+  var numdays = Math.floor((seconds % 31536000) / 86400);
+  var numhours = Math.floor(((seconds % 31536000) % 86400) / 3600);
+  var numminutes = Math.floor((((seconds % 31536000) % 86400) % 3600) / 60);
+  var numseconds = Math.floor((((seconds % 31536000) % 86400) % 3600) % 60);
+  var string = "";
+  if (numyears) string += numyears + " y ";
+  if (numdays) string += numdays + " d ";
+  if (numhours) string += numhours + " h ";
+  if (numminutes) string += numminutes + " m ";
+  if (numseconds) string += numseconds + " s";
+
+  return string;
+}

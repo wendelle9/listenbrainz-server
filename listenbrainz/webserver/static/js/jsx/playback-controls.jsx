@@ -2,27 +2,27 @@ import { faEye, faEyeSlash, faFastBackward, faFastForward, faPauseCircle, faPlay
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
-function millisecondsToHumanReadable(milliseconds) {
-  var seconds = milliseconds / 1000;
-  var numyears = Math.floor(seconds / 31536000);
-  var numdays = Math.floor((seconds % 31536000) / 86400);
-  var numhours = Math.floor(((seconds % 31536000) % 86400) / 3600);
-  var numminutes = Math.floor((((seconds % 31536000) % 86400) % 3600) / 60);
-  var numseconds = Math.floor((((seconds % 31536000) % 86400) % 3600) % 60);
-  var string = "";
-  if (numyears) string += numyears + " y ";
-  if (numdays) string += numdays + " d ";
-  if (numhours) string += numhours + " h ";
-  if (numminutes) string += numminutes + " m ";
-  if (numseconds) string += numseconds + " s";
-
-  return string;
-}
 
 export class PlaybackControls extends React.Component {
 
-  state = {
-    autoHideControls: true
+  constructor(props){
+    super(props);
+    this.state = {
+      autoHideControls: true
+    };
+    this.seekToTime = this.seekToTime.bind(this);
+  }
+  
+  
+  seekToTime(event) {
+    const progressBarBoundingRect = event.currentTarget.getBoundingClientRect();
+    const progressBarWidth = progressBarBoundingRect.width
+    const musicPlayerXOffset = progressBarBoundingRect.x;
+    const absoluteClickXPos = event.clientX;
+    const relativeClickXPos = absoluteClickXPos - musicPlayerXOffset;
+    const percentPos = relativeClickXPos / progressBarWidth;
+    const positionMs = Math.round(this.props.duration_ms * percentPos);
+    this.props.seekToPositionMs(positionMs);
   }
 
   render() {
@@ -36,7 +36,7 @@ export class PlaybackControls extends React.Component {
           <div className="currently-playing">
             <h2 className="song-name">{this.props.trackName || '—'}</h2>
             <h3 className="artist-name">{this.props.artistName}</h3>
-            <div className="progress">
+            <div className="progress" onClick={this.seekToTime}>
               <div className="progress-bar" style={{ width: `${this.props.progress_ms * 100 / this.props.duration_ms}%` }}></div>
             </div>
           </div>

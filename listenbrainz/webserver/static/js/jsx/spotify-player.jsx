@@ -46,20 +46,17 @@ export class SpotifyPlayer extends React.Component {
     this.isCurrentListen = this.isCurrentListen.bind(this);
     this.playListen = this.playListen.bind(this);
     this.playNextTrack = this.playNextTrack.bind(this);
-    this.debouncedPlayNextTrack = _.debounce(this.playNextTrack, 500, {leading:false, trailing:true});
+    this.debouncedPlayNextTrack = _.debounce(this.playNextTrack, 300, {leading:false, trailing:true});
     this.playPreviousTrack = this.playPreviousTrack.bind(this);
     this.search_and_play_track = this.search_and_play_track.bind(this);
     this.startPlayerStateTimer = this.startPlayerStateTimer.bind(this);
     this.stopPlayerStateTimer = this.stopPlayerStateTimer.bind(this);
     this.togglePlay = this.togglePlay.bind(this);
     this.toggleDirection = this.toggleDirection.bind(this);
-    // Do an initial check of the spotify token permissions (scopes) before loading the SDK library
-    this.checkSpotifyToken(this.state.accessToken, this.state.permission).then(success => {
-      if(success){
-        window.onSpotifyWebPlaybackSDKReady = this.connectSpotifyPlayer;
-        const spotifyPlayerSDKLib = require('../lib/spotify-player-sdk-1.6.0');
-      }
-    })
+    this.seekToPositionMs = this.seekToPositionMs.bind(this);
+    // Do an initial check of the spotify token permissions (scopes)
+    this.checkSpotifyToken(this.state.accessToken, this.state.permission)
+    window.onSpotifyWebPlaybackSDKReady = this.connectSpotifyPlayer;
     // ONLY FOR TESTING PURPOSES
     window.disconnectSpotifyPlayer = this.disconnectSpotifyPlayer;
   }
@@ -397,7 +394,7 @@ export class SpotifyPlayer extends React.Component {
     }
     // How do we accurately detect the end of a song?
     // From https://github.com/spotify/web-playback-sdk/issues/35#issuecomment-469834686
-    if (position === 0 && paused === true)
+    if (position === 0 && paused === true && _.get(state,'disallows.pausing'))
     {
       // Track finished, play next track
       console.debug("Detected Spotify end of track, playing next track");
@@ -426,6 +423,10 @@ export class SpotifyPlayer extends React.Component {
     const sortedImages = track.album.images.sort((a, b) => a.height > b.height ? -1 : 1);
     return sortedImages[0] && <img className="img-responsive" src={sortedImages[0].url} />;
   }
+  
+  seekToPositionMs(msTimecode){
+    this._spotifyPlayer.seek(msTimecode);
+  }
 
   render() {
     return (
@@ -443,6 +444,7 @@ export class SpotifyPlayer extends React.Component {
           }
           progress_ms={this.state.progressMs}
           duration_ms={this.state.durationMs}
+          seekToPositionMs={this.seekToPositionMs}
         >
           {this.getAlbumArt()}
         </PlaybackControls>

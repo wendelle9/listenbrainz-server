@@ -162,7 +162,9 @@ def profile(user_name):
         props=ujson.dumps(props),
         mode='listens',
         user=user,
-        active_section='listens')
+        active_section='listens',
+        spotify_data=spotify_data
+        )
 
 
 @user_bp.route("/<user_name>/artists")
