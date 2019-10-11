@@ -57,7 +57,7 @@ export class SpotifyPlayer extends React.Component {
     this.checkSpotifyToken(this.state.accessToken, this.state.permission).then(success => {
       if(success){
         window.onSpotifyWebPlaybackSDKReady = this.connectSpotifyPlayer;
-        const spotifyPlayerSDKLib = require('../lib/spotify-player-sdk-1.6.0');
+        const spotifyPlayerSDKLib = require('../lib/spotify-player-sdk-1.7.1');
       }
     })
     // ONLY FOR TESTING PURPOSES
