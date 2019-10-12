@@ -166,5 +166,6 @@ def odyssey(mbid0, mbid1):
         "index/odyssey.html",
         props=ujson.dumps(props),
         user=current_user,
+        spotify_data=spotify_data
     )
 
