@@ -62,6 +62,7 @@ services:
     volumes:
       - ..:/code/listenbrainz:z
       - ../listenbrainz/webserver/static:/static
+      - /home/robert/listenbrainz-server/annoy:/annoy
     ports:
       - "80:80"
     depends_on:

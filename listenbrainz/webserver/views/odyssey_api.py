@@ -19,13 +19,12 @@ SIMILARITY_SERVER_URL = "http://similarity.acousticbrainz.org:8088/api/v1/path/"
 @ratelimit()
 def odyssey(mbid0, mbid1):
  
-#    steps = _parse_int_arg("steps")
     metric = request.args.get("metric", "mfccs")
 
     if not is_valid_uuid(mbid0) or not is_valid_uuid(mbid1):
         raise APIBadRequest("One or both of the recording MBIDs are invalid.")
 
-    url = SIMILARITY_SERVER_URL + "similarity_path/debug/" + mbid0 + "/" + mbid1
+    url = SIMILARITY_SERVER_URL + "similarity_path/" + mbid0 + "/" + mbid1 + "?metric=" + metric
     current_app.logger.error(url)
 
     r = requests.get(url)
@@ -39,31 +38,7 @@ def odyssey(mbid0, mbid1):
     if not data:
         raise APINotFound("A path between the two given tracks could not be found.")
 
-    hist = {}
-    for metric in data.keys():
-        for recording in data[metric]['recordings']:
-            try:
-                hist[recording[0]]['count'] += 1
-            except KeyError:
-                hist[recording[0]] = {}
-                hist[recording[0]]['count'] = 1
-                hist[recording[0]]['metric'] = metric
-                hist[recording[0]]['dist'] = recording[1]
-
-
-    recordings = []
-    for recording in hist.keys():
-        recordings.append({ 'count' : hist[recording]['count'], 
-                            'metric' : hist[recording]['metric'],
-                            'recording' : recording, 
-                            'dist' : hist[recording]['dist'] })
-
-    sorted_recordings = sorted(recordings, key=itemgetter('count'), reverse = True)
-
-    lookup_recordings = []
-    for recording in sorted_recordings[:100]:
-       lookup_recordings.append(recording['recording'])
-
+    lookup_recordings = [ rec[0] for rec in data ]
     while True:
         try:
             mb_recordings = mb_rec.get_many_recordings_by_mbid(lookup_recordings, includes=["artists"])
@@ -77,7 +52,7 @@ def odyssey(mbid0, mbid1):
             lookup_recordings = new_lookup
 
     mogged = []
-    for mbid in mb_recordings.keys():
+    for i, mbid in enumerate(mb_recordings.keys()):
         armbids = [ a['id'] for a in mb_recordings[mbid]['artists'] ]
         arnames = [ a['name'] for a in mb_recordings[mbid]['artists'] ]
         mogged.append({
@@ -87,9 +62,10 @@ def odyssey(mbid0, mbid1):
                     "rating": "",
                     "recording_mbid": mbid,
                     "release_msid": "",
-                    "dist": "%f" % hist[mbid]['dist'],
-                    "count": "%d" % hist[mbid]['count'],
-                    "metric": hist[mbid]['metric'],
+                    "dist": "%f" % data[i][1],
+                    "metrics": {
+                        metric : data[i][2]
+                    },
                     "track_number": "",
                     "artist_mbids": armbids,
                     "artist_names": arnames,
@@ -102,7 +78,7 @@ def odyssey(mbid0, mbid1):
     return jsonify({'status': 'ok', 'payload': mogged})
 
 
-@api_bp.route("/odyssey/debug/<mbid>")
+@api_bp.route("/odyssey/similar/<mbid>")
 @crossdomain(headers="Authorization, Content-Type")
 @ratelimit()
 def odyssey_debug(mbid):
@@ -110,44 +86,37 @@ def odyssey_debug(mbid):
     if not is_valid_uuid(mbid):
         raise APIBadRequest("The given MBID is invalid.")
 
-    metric = request.args.get("metric", "mfccs")
-    max = int(request.args.get("max", "25"))
-    current_app.logger.error(metric)
-    current_app.logger.error(max)
+    metrics = request.args.get("metrics", "")
 
-
-
-    url = SIMILARITY_SERVER_URL + metric + "/" + mbid + "?steps=%d" % max
+    url = SIMILARITY_SERVER_URL + "similarity_path/similarity/" + mbid + "?metrics=" + metrics
     current_app.logger.error(url)
 
     r = requests.get(url)
     if r.status_code == 404:
-        raise APINotFound("The given MBID was present on the similarity server.")
+        raise APINotFound("the passed MBIDs is not present on the similarity server.")
 
     if r.status_code != 200:
         raise APIInternalServerError("Similarity server returned error %s" % r.status_code)
 
     data = r.json()
-    current_app.logger.error(data)
-
     if not data:
         raise APINotFound("The similarity server returned no data.")
 
     while True:
-        recording_ids = [ item[0] for item in data ]
+        recording_ids = [ item['mbid'] for item in data ]
         try:
             recordings = mb_rec.get_many_recordings_by_mbid(recording_ids, includes=["artists"])
             break
         except NoDataFoundException as err:
             missing = ujson.loads(str(err)[33:].replace("'", '"'))
             new_data = []
-            for rec, value in data:
-                if rec not in missing:
-                    new_data.append((rec, value))
+            for d in data:
+                if d['mbid'] not in missing:
+                    new_data.append(d)
             data = new_data
 
     mogged = []
-    for mbid, dist in zip(recordings.keys(), data):
+    for mbid, extra in zip(recordings.keys(), data):
         armbids = [ a['id'] for a in recordings[mbid]['artists'] ]
         arnames = [ a['name'] for a in recordings[mbid]['artists'] ]
         mogged.append({
@@ -157,11 +126,11 @@ def odyssey_debug(mbid):
                     "rating": "",
                     "recording_mbid": mbid,
                     "release_msid": "",
-                    "source": "",
+                    "sum": extra['sum'],
+                    "metrics" : extra['metrics'],
                     "track_number": "",
                     "artist_mbids": armbids,
                     "artist_names": arnames,
-                    "distance": dist[1],
                 },
                 "artist_name": recordings[mbid]['artists'][0]['name'],
                 "track_name": recordings[mbid]['name'],
