@@ -14,9 +14,10 @@ class StandalonePlayer extends React.Component {
     super(props);
     this.state = {
       alerts: [],
-      listens: props.listens || [],
+      listens: props.recordings || [],
       currentListen : null,
-      direction: "down"
+      direction: "down",
+      playlistMetadata: props.metadata
     };
     this.handleCurrentListenChange = this.handleCurrentListenChange.bind(this);
     this.handleSpotifyAccountError = this.handleSpotifyAccountError.bind(this);
@@ -101,6 +102,15 @@ class StandalonePlayer extends React.Component {
         />
         <div className="row">
           <div className="col-md-8">
+            {this.state.playlistMetadata &&
+              <div>
+                <h3>{this.state.playlistMetadata.name}
+                &nbsp;
+                {this.state.playlistMetadata.created && <small> — {new Date(this.state.playlistMetadata.created).toLocaleString()}</small>}
+                </h3>
+                {this.state.playlistMetadata.description && <p>{this.state.playlistMetadata.description}</p>}
+              </div>
+            }
             {this.state.listens.length > 0 ?
               <div>
                 <table className="table table-condensed table-striped listens-table" id="listens">
