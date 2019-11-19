@@ -68,13 +68,56 @@ def validate_playlist(playlist):
 
         recordings.append(data)
 
-    print(metadata)
-    print(recordings)
 
     return recordings, metadata
 
 
-@player_bp.route("/", methods=["POST", "GET"])
+@player_bp.route("/")
+@login_required
+def load():
+
+    recording_mbids = request.args.get("recordings", "")
+    name = request.args.get("name", "[ unknown ]")
+    desc = request.args.get("desc", "")
+    created = request.args.get("created", "")
+
+    metadata = {
+        "name" : name, 
+        "description" : desc,
+        "created" : created
+    }
+
+    recordings = []
+    for recording in recording_mbids:
+        recordings.append({ "recording_mbid" : recording, "player_sources" : [] })
+
+    current_app.logger.info(recordings)
+    current_app.logger.info(metadata)
+
+    user_data = {
+        "id": current_user.id,
+        "name": current_user.musicbrainz_id,
+        "auth_token": current_user.auth_token,
+    }
+    spotify_data = spotify.get_user_dict(current_user.id)
+    props = {
+        "user": user_data,
+        "spotify": spotify_data,
+        "api_url": current_app.config["API_URL"],
+        "recordings" : recordings,
+        "metadata" : metadata
+    }
+
+    return render_template(
+        "standalone-player.html",
+        is_get_request=request.method == 'GET',
+        props=ujson.dumps(props),
+        user=current_user,
+        spotify_data=spotify_data
+    )
+
+
+@player_bp.route("/post", methods=["POST", "GET"])
 @login_required
 def player():
     """ 
@@ -83,10 +126,13 @@ def player():
     """
 
     if request.json:
-        recordings, metdata = validate_playlist(request.json) 
+        recordings, metadata = validate_playlist(request.json) 
     else:
         recordings = {}
         metadata = {}
+
+    current_app.logger.info(recordings)
+    current_app.logger.info(metadata)
 
     user_data = {
         "id": current_user.id,
