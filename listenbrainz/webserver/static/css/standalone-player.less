@@ -57,16 +57,25 @@
 		.header {
 			height: 60px;
 			padding: 0.6em;
-			background-color: fade(@turquoise,25%);
+			background-color: rgba(101, 148, 232, 0.1);
 			> h4 {
 				margin: 0;
 			}
+			> * {
+				white-space: inherit;
+				overflow: inherit;
+				text-overflow: inherit;
+			}
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
 		}
 		#listens {
 			max-height:440px;
 			overflow-y: scroll;
 		}
 		.scroll-hint {
+			pointer-events: none;
 			position: absolute;
 			bottom: 0;
 			height: 100px;
