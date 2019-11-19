@@ -27,6 +27,8 @@ from listenbrainz.domain import spotify
 
 player_bp = Blueprint("player", __name__)
 
+# This function uses the format above to parse/validate pasted data. However, we're having a hard time
+# Finding a good way to POST this data into the browser... :(
 def validate_playlist(playlist):
     """
         Validate the incoming playlist; be lienient in what you accept to make this as easy to use as possible.
@@ -75,6 +77,10 @@ def validate_playlist(playlist):
 @player_bp.route("/")
 @login_required
 def load():
+    """ 
+        This player is the start of the BrainzPlayer concept where anyone (logged into LB) can post playlist
+        composed of recording MBIDs and have the player attempt to make the list playable.
+    """
 
     recording_mbids = request.args.get("recordings", "")
     name = request.args.get("name", "[ unknown ]")
@@ -110,47 +116,6 @@ def load():
 
     return render_template(
         "standalone-player.html",
-        is_get_request=request.method == 'GET',
-        props=ujson.dumps(props),
-        user=current_user,
-        spotify_data=spotify_data
-    )
-
-
-@player_bp.route("/post", methods=["POST", "GET"])
-@login_required
-def player():
-    """ 
-        This player is the start of the BrainzPlayer concept where anyone (logged into LB) can post playlist
-        composed of recording MBIDs and have the player attempt to make the list playable.
-    """
-
-    if request.json:
-        recordings, metadata = validate_playlist(request.json) 
-    else:
-        recordings = {}
-        metadata = {}
-
-    current_app.logger.info(recordings)
-    current_app.logger.info(metadata)
-
-    user_data = {
-        "id": current_user.id,
-        "name": current_user.musicbrainz_id,
-        "auth_token": current_user.auth_token,
-    }
-    spotify_data = spotify.get_user_dict(current_user.id)
-    props = {
-        "user": user_data,
-        "spotify": spotify_data,
-        "api_url": current_app.config["API_URL"],
-        "recordings" : recordings,
-        "metadata" : metadata
-    }
-
-    return render_template(
-        "standalone-player.html",
-        is_get_request=request.method == 'GET',
         props=ujson.dumps(props),
         user=current_user,
         spotify_data=spotify_data
