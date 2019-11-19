@@ -1,12 +1,15 @@
 'use strict';
 
 import {getArtistLink, getPlayButton, getSpotifyEmbedUriFromListen, getTrackLink} from './utils.jsx';
-
 import APIService from './api-service';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { AlertList } from 'react-bs-notifier';
 import {SpotifyPlayer} from './spotify-player.jsx';
+
+import { faList, faHeadphones } from '@fortawesome/free-solid-svg-icons'
+
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 class StandalonePlayer extends React.Component {
 
@@ -16,8 +19,8 @@ class StandalonePlayer extends React.Component {
       alerts: [],
       listens: props.recordings || [],
       currentListen : null,
-      direction: "down",
-      playlistMetadata: props.metadata
+      playlistMetadata: props.metadata,
+      showBack: props.recordings.length ? false : true
     };
     this.handleCurrentListenChange = this.handleCurrentListenChange.bind(this);
     this.handleSpotifyAccountError = this.handleSpotifyAccountError.bind(this);
@@ -25,6 +28,7 @@ class StandalonePlayer extends React.Component {
     this.newAlert = this.newAlert.bind(this);
     this.onAlertDismissed = this.onAlertDismissed.bind(this);
     this.playListen = this.playListen.bind(this);
+    this.onFlipButtonClick = this.onFlipButtonClick.bind(this);
     this.spotifyPlayer = React.createRef();
 
     this.APIService = new APIService(props.api_url || `${window.location.origin}/1`);
@@ -38,6 +42,10 @@ class StandalonePlayer extends React.Component {
   handleSpotifyPermissionError(error) {
     console.error(error);
     this.setState({canPlayMusic: false});
+  }
+
+  onFlipButtonClick() {
+    this.setState({showBack: !this.state.showBack});
   }
 
   playListen(listen){
@@ -100,70 +108,72 @@ class StandalonePlayer extends React.Component {
           dismissTitle="Dismiss"
           onDismiss={this.onAlertDismissed}
         />
-        <div className="row">
-          <div className="col-md-8">
-            {this.state.playlistMetadata &&
-              <div>
-                <h3>{this.state.playlistMetadata.name}
-                &nbsp;
-                {this.state.playlistMetadata.created && <small> — {new Date(this.state.playlistMetadata.created).toLocaleString()}</small>}
-                </h3>
-                {this.state.playlistMetadata.description && <p>{this.state.playlistMetadata.description}</p>}
-              </div>
-            }
-            {this.state.listens.length > 0 ?
-              <div>
-                <table className="table table-condensed table-striped listens-table" id="listens">
-                  <thead>
-                    <tr>
-                      <th>Track</th>
-                      <th>Artist</th>
-                      <th width="50px"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {this.state.listens
-                      .map((listen, index) => {
-                        return (
-                          <tr key={`listen_${index}`}
-                            onDoubleClick={this.playListen.bind(this, listen)} >
-                            <td>{getTrackLink(listen)}</td>
-                            <td>{getArtistLink(listen)}</td>
-                            <td className="playButton">{getPlayButton(listen, this.playListen.bind(this, listen))}</td>
-                          </tr>
-                        )
-                      })
-                    }
-                  </tbody>
-                </table>
-              </div>
-            :
-              <div className="lead text-center">
-                <p>How about you play me something?</p>
-              </div>
-            }
-          </div>
-          <div className="col-md-4" style={{ position: "-webkit-sticky", position: "sticky", top: 20 }}>
-            {this.props.spotify.access_token && this.state.canPlayMusic !== false ?
-              <SpotifyPlayer
-                APIService={this.APIService}
-                ref={this.spotifyPlayer}
-                listens={this.state.listens}
-                direction={this.state.direction}
-                spotify_user={this.props.spotify}
-                onCurrentListenChange={this.handleCurrentListenChange}
-                onAccountError={this.handleSpotifyAccountError}
-                onPermissionError={this.handleSpotifyPermissionError}
-                currentListen={this.state.currentListen}
-                newAlert={this.newAlert}
-              /> :
-              // Fallback embedded player
-              <div className="col-md-4 text-right">
+        <div id="standalone-player" className={`${this.state.showBack ? 'flip':''}`}>
+          <button className="flip-button">
+            <FontAwesomeIcon onClick={this.onFlipButtonClick} icon={this.state.showBack ? faHeadphones : faList}></FontAwesomeIcon>
+          </button>
+          <div className="flipper">
+            <div className="front">
+              {this.props.spotify.access_token && this.state.canPlayMusic !== false ?
+                <SpotifyPlayer
+                  APIService={this.APIService}
+                  ref={this.spotifyPlayer}
+                  listens={this.state.listens}
+                  spotify_user={this.props.spotify}
+                  onCurrentListenChange={this.handleCurrentListenChange}
+                  onAccountError={this.handleSpotifyAccountError}
+                  onPermissionError={this.handleSpotifyPermissionError}
+                  currentListen={this.state.currentListen}
+                  newAlert={this.newAlert}
+                /> :
+                // Fallback embedded player
                 <iframe src={getSpotifyEmbedSrc()}
                   width="300" height="380" frameBorder="0" allowtransparency="true" allow="encrypted-media">
                 </iframe>
-              </div>
-            }
+              }
+            </div>
+            <div className="back">
+              <div className="scroll-hint"></div>
+              {this.state.playlistMetadata &&
+                <div className="header">
+                  <h4>{this.state.playlistMetadata.name}
+                  {this.state.playlistMetadata.created && <small className="pull-right">— {new Date(this.state.playlistMetadata.created).toLocaleString()}</small>}
+                  </h4>
+                  {this.state.playlistMetadata.description && <small>{this.state.playlistMetadata.description}</small>}
+                </div>
+              }
+              {this.state.listens.length > 0 ?
+                <div id="listens">
+                  <table className="table table-condensed table-striped listens-table">
+                    <thead>
+                      <tr>
+                        <th>Track</th>
+                        <th>Artist</th>
+                        <th width="50px"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {this.state.listens
+                        .map((listen, index) => {
+                          return (
+                            <tr key={`listen_${index}`}
+                              onDoubleClick={this.playListen.bind(this, listen)} >
+                              <td>{getTrackLink(listen)}</td>
+                              <td>{getArtistLink(listen)}</td>
+                              <td className="playButton">{getPlayButton(listen, this.playListen.bind(this, listen))}</td>
+                            </tr>
+                          )
+                        })
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              :
+                <div className="lead text-center">
+                  <p>Nothing to play</p>
+                </div>
+              }
+            </div>
           </div>
         </div>
       </div>

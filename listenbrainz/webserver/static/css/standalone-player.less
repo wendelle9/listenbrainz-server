@@ -1,0 +1,79 @@
+#standalone-player {
+	/* entire container, keeps perspective */
+	perspective: 1000px;
+	
+	/* Full height, better for flipping effect*/
+	#music-player {
+		min-height: 500px;
+	}
+	
+	.flip-button {
+		// position: absolute;
+		bottom: 1.5em;
+		right: 1.5em;
+		border-radius: 50%;
+		background-color: fade(white,10%);
+		width: 30px;
+		height: 30px;
+	}
+	
+	/* Flip it !*/
+	&.flip .flipper {
+		transform: rotateY(180deg);
+	}
+	&, .front, .back {
+		width: 500px;
+		height: 500px;
+	}
+	
+	/* flip speed goes here */
+	.flipper {
+		transition: 0.6s;
+		transform-style: preserve-3d;
+		position: relative;
+	}
+	
+	/* hide back of pane during swap */
+	.front, .back {
+		backface-visibility: hidden;
+		position: absolute;
+		top: 0;
+		left: 0;
+	}
+	
+	/* front pane, placed above back */
+	.front {
+		z-index: 2;
+		/* for firefox 31 */
+		transform: rotateY(0deg);
+	}
+	
+	/* back, initially hidden pane */
+	.back {
+		transform: rotateY(180deg);
+		background-color: #f9f6f5;
+		border-radius: 5px;
+    	box-shadow: 5px 5px 15px fade(black,10%);
+		.header {
+			height: 60px;
+			padding: 0.6em;
+			background-color: fade(@turquoise,25%);
+			> h4 {
+				margin: 0;
+			}
+		}
+		#listens {
+			max-height:440px;
+			overflow-y: scroll;
+		}
+		.scroll-hint {
+			position: absolute;
+			bottom: 0;
+			height: 100px;
+			width: 100%;
+			background: linear-gradient(fade(white,0%),white);
+		}
+	}
+}
+
+
