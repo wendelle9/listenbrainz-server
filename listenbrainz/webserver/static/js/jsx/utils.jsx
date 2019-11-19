@@ -69,7 +69,7 @@ export function getTrackLink(listen) {
   {
     return (<a href={`http://musicbrainz.org/recording/${listen.track_metadata.additional_info.recording_mbid}`}
       target="_blank">
-      {trackName}
+      {trackName || listen.track_metadata.additional_info.recording_mbid}
     </a>);
   }
   return trackName;
