@@ -12,7 +12,6 @@ module.exports = function(env){
     mode: isProd ? "production" : "development",
     entry: {
       main: '/static/js/jsx/profile.jsx',
-      odyssey: '/static/js/jsx/odyssey.jsx'
     },
     output: {
       filename: isProd ? '[name].[contenthash].js' : '[name].js',

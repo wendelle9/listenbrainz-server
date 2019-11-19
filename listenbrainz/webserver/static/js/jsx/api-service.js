@@ -84,55 +84,6 @@ export default class APIService {
     return result.user_token;
   }
   
-  async getOdysseyPlaylist(startTrack, endTrack, metricsArray) {
-    
-    if(isNil(startTrack) || isNil(endTrack) || startTrack === "" || endTrack === "") {
-      throw new SyntaxError('Expected a startTrack and an endTrack');
-    }
-
-    let query = `${this.APIBaseURI}/odyssey/${startTrack}/${endTrack}`;
-
-    if(!isNil(metricsArray)){
-      query += `?metrics=${metricsArray}`
-    }
-
-    const response = await fetch(query, {
-      accept: 'application/json',
-      method: "GET"
-    })
-    await this.checkStatus(response);
-    const result = await response.json();
-    
-    return result.payload
-  }
-
-  async getSimilarTracksPlaylist(recordingMBID, metricsArray, limit) {
-    if(isNil(recordingMBID) || recordingMBID === "") {
-      throw new SyntaxError('Expected a recordingMBID');
-    }
-
-    let query = `${this.APIBaseURI}/odyssey/similar/${recordingMBID}`;
-
-    const queryParams = [];
-    if(!isNil(metricsArray)){
-      queryParams.push(`metrics=${metricsArray}`)
-    }
-    if(!isNil(limit) && isFinite(Number(limit))){
-      queryParams.push(`limit=${limit}`)
-    }
-    if(queryParams.length) {
-      query += `?${queryParams.join("&")}`
-    }
-    const response = await fetch(query, {
-      accept: 'application/json',
-      method: "GET"
-    })
-    await this.checkStatus(response);
-    const result = await response.json();
-    
-    return result.payload
-  }
-  
   async checkStatus(response) {
     if (response.ok || (response.status >= 200 && response.status < 300)) {
       return;
