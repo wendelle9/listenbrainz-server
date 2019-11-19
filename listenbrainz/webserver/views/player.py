@@ -88,8 +88,8 @@ def load():
     }
 
     recordings = []
-    for recording in recording_mbids:
-        recordings.append({ "recording_mbid" : recording, "player_sources" : [] })
+    for recording in recording_mbids.split(","):
+        recordings.append({ "track_metadata" : { "additional_info" : { "recording_mbid" : recording, "player_sources" : [] } } })
 
     current_app.logger.info(recordings)
     current_app.logger.info(metadata)
