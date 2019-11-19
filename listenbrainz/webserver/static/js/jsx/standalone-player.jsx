@@ -112,8 +112,8 @@ class StandalonePlayer extends React.Component {
           onDismiss={this.onAlertDismissed}
         />
         <div id="standalone-player" className={`${this.state.showBack ? 'flip':''}`}>
-          <button className="flip-button">
-            <FontAwesomeIcon onClick={this.onFlipButtonClick} icon={this.state.showBack ? faHeadphones : faList}></FontAwesomeIcon>
+          <button className="btn btn-xs flip-button" onClick={this.onFlipButtonClick}>
+            <FontAwesomeIcon icon={this.state.showBack ? faHeadphones : faList}></FontAwesomeIcon>
           </button>
           <div className="flipper">
             <div className="front">
@@ -128,6 +128,7 @@ class StandalonePlayer extends React.Component {
                   onPermissionError={this.handleSpotifyPermissionError}
                   currentListen={this.state.currentListen}
                   newAlert={this.newAlert}
+                  direction="hidden"
                 /> :
                 // Fallback embedded player
                 <iframe src={getSpotifyEmbedSrc()}
