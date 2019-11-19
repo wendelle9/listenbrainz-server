@@ -98,6 +98,9 @@ class StandalonePlayer extends React.Component {
       }
       return null;
     }
+    const name = (!!this.state.playlistMetadata && this.state.playlistMetadata.name) || "Playlist";
+    const created_at = !!this.state.playlistMetadata && this.state.playlistMetadata.created;
+    const description = !!this.state.playlistMetadata && this.state.playlistMetadata.description;
 
     return (
       <div>
@@ -136,10 +139,10 @@ class StandalonePlayer extends React.Component {
               <div className="scroll-hint"></div>
               {this.state.playlistMetadata &&
                 <div className="header">
-                  <h4>{this.state.playlistMetadata.name}
-                  {this.state.playlistMetadata.created && <small className="pull-right">— {new Date(this.state.playlistMetadata.created).toLocaleString()}</small>}
+                  <h4 title={name}>{name}
+                  {created_at && <small className="pull-right">— {new Date(created_at).toLocaleString()}</small>}
                   </h4>
-                  {this.state.playlistMetadata.description && <small>{this.state.playlistMetadata.description}</small>}
+                  {description && <small title={description}>{description}</small>}
                 </div>
               }
               {this.state.listens.length > 0 ?
