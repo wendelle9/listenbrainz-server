@@ -32,8 +32,26 @@
       {% endfor %}
     {% endwith %}
 
-      <div id="react-container">
+  {% if is_get_request %}
+    <form action="/player/" method="post">
+      <div class="form-group">
+        <label for="name">Playlist name:</label>
+        <input type="text" class="form-control" id="name" placeholder="My awesome mixtape">
       </div>
+      <div class="form-group">
+        <label for="description">Playlist description:</label>
+        <input type="text" class="form-control" id="description" placeholder="This playlist has all sorts of good tracks">
+      </div>
+      <div class="form-group">
+        <label for="tracklist">List of tracks (JSON object):</label>
+        <textarea id="tracklist" class="form-control" rows="3"></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Play it!</button>
+    </form>
+  {% else %}
+    <div id="react-container">
+    </div>
+  {% endif %}
   </div>
 
   {%- block scripts -%}

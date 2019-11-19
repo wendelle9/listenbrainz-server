@@ -104,6 +104,7 @@ def player():
 
     return render_template(
         "standalone-player.html",
+        is_get_request=request.method == 'GET',
         props=ujson.dumps(props),
         user=current_user,
         spotify_data=spotify_data
