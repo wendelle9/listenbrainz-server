@@ -33,27 +33,20 @@
     {% endwith %}
 
   {% if is_get_request %}
-    <form action="/player/" method="post">
+    <form action="/player/" method="post" enctype="text/plain">
       <div class="form-group">
-        <label for="tracklist">Create a playlist:</label>
-        <textarea id="tracklist" class="form-control" rows="18" placeholder="{
-          'name' : 'My precious playlist',
-          'description' : 'A playlist made from super powerful pink unicorns. Sparkly pink unicorns.',
-          'created' : '2019-11-19T11:49:16.199744',
-          'recordings' : [
-              {
-                  'mbid' : '145f5c43-0ac2-4886-8b09-63d0e92ded5d',
-                  'sources' : [
-                      {
-                          'uri' : 'spotify:track:3Ty7OTBNSigGEpeW2PqcsC',
-                          'uri_type' : 'spotify'
-                      },
-                      ...
-                  ]
-              },
-              ...
-          ]
-      }"></textarea>
+        <label for="name">Playlist name:</label>
+        <input type="text" class="form-control" id="name" placeholder="My awesome mixtape">
+      </div>
+      <div class="form-group">
+        <label for="description">Playlist description:</label>
+        <input type="text" class="form-control" id="description" placeholder="This playlist has all sorts of good tracks">
+      </div>
+      <div class="form-group">
+        <label for="recordings">Line separated list of MBIDs:</label>
+        <textarea id="recordings" class="form-control" rows="18" placeholder="145f5c43-0ac2-4886-8b09-63d0e92ded5d
+        8b09fc43-0ac2-4886-8b09-63d0e92ded5d
+        ..."></textarea>
       </div>
       <button type="submit" class="btn btn-primary">Play it!</button>
     </form>
