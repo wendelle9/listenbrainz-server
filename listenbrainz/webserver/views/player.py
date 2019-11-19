@@ -1,6 +1,6 @@
 import ujson
 from werkzeug.exceptions import BadRequest
-from flask import Blueprint, render_template, current_app
+from flask import Blueprint, render_template, current_app, request
 from flask_login import current_user, login_required
 from listenbrainz.domain import spotify
 
@@ -82,7 +82,11 @@ def player():
         composed of recording MBIDs and have the player attempt to make the list playable.
     """
 
-    recordings, metdata = validate_playlist(request.json) 
+    if request.json:
+        recordings, metdata = validate_playlist(request.json) 
+    else:
+        recordings = {}
+        metadata = {}
 
     user_data = {
         "id": current_user.id,
