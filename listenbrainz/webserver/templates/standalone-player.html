@@ -37,14 +37,14 @@
   </div>
 
   {%- block scripts -%}
-    <script src="{{ get_static_path('commons.js') }}" type="text/javascript"></script>
-    <script src="{{ get_static_path('standalone.js') }}" type="text/javascript"></script>
     <script id="react-props" type="application/json">{{ props|safe }}</script>
   
     {% if spotify_data %}
     {# We want to load the latest version of the SDK instead of requiring manual update #}
     <script src="https://sdk.scdn.co/spotify-player.js"></script>
     {% endif %}
+    <script src="{{ get_static_path('commons.js') }}" type="text/javascript"></script>
+    <script src="{{ get_static_path('standalone.js') }}" type="text/javascript"></script>
   {%- endblock -%}
 </body>
 </html>
