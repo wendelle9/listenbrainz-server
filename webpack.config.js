@@ -12,6 +12,7 @@ module.exports = function(env){
     mode: isProd ? "production" : "development",
     entry: {
       main: '/static/js/jsx/profile.jsx',
+      standalone: '/static/js/jsx/standalone-player.jsx'
     },
     output: {
       filename: isProd ? '[name].[contenthash].js' : '[name].js',
