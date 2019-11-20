@@ -6,9 +6,9 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { AlertList } from 'react-bs-notifier';
 import {SpotifyPlayer} from './spotify-player.jsx';
+import {isEqual as _isEqual} from 'lodash';
 
-import { faList, faHeadphones } from '@fortawesome/free-solid-svg-icons'
-
+import { faList, faHeadphones, faVolumeUp } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 class StandalonePlayer extends React.Component {
@@ -20,9 +20,10 @@ class StandalonePlayer extends React.Component {
       listens: props.recordings || [],
       currentListen : null,
       playlistMetadata: props.metadata,
-      showBack: props.recordings.length ? false : true
+      showBack: true
     };
     this.handleCurrentListenChange = this.handleCurrentListenChange.bind(this);
+    this.isCurrentListen = this.isCurrentListen.bind(this);
     this.handleSpotifyAccountError = this.handleSpotifyAccountError.bind(this);
     this.handleSpotifyPermissionError = this.handleSpotifyPermissionError.bind(this);
     this.newAlert = this.newAlert.bind(this);
@@ -51,12 +52,15 @@ class StandalonePlayer extends React.Component {
   playListen(listen){
     if(this.spotifyPlayer.current){
       this.spotifyPlayer.current.playListen(listen);
-      return;
+      this.setState({showBack: false})
     } else {
       // For fallback embedded player
-      this.setState({currentListen:listen});
-      return;
+      this.setState({currentListen:listen, showBack: false});
     }
+  }
+  
+  isCurrentListen(listen){
+    return this.state.currentListen && _isEqual(listen,this.state.currentListen);
   }
 
   handleCurrentListenChange(listen){
@@ -151,9 +155,9 @@ class StandalonePlayer extends React.Component {
                   <table className="table table-condensed table-striped listens-table">
                     <thead>
                       <tr>
+                        <th width="30px"></th>
                         <th>Track</th>
                         <th>Artist</th>
-                        <th width="50px"></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -161,10 +165,14 @@ class StandalonePlayer extends React.Component {
                         .map((listen, index) => {
                           return (
                             <tr key={`listen_${index}`}
-                              onDoubleClick={this.playListen.bind(this, listen)} >
+                              onDoubleClick={this.playListen.bind(this, listen)}
+                              className={`listen ${this.isCurrentListen(listen) ? 'info' : ''}`}  >
+                              {this.isCurrentListen(listen) ?
+                                <td className="text-center text-info"><FontAwesomeIcon icon={faVolumeUp}></FontAwesomeIcon></td> :
+                                <td className="playButton">{getPlayButton(listen, this.playListen.bind(this, listen), "1x")}</td>
+                               }
                               <td>{getTrackLink(listen)}</td>
                               <td>{getArtistLink(listen)}</td>
-                              <td className="playButton">{getPlayButton(listen, this.playListen.bind(this, listen))}</td>
                             </tr>
                           )
                         })

@@ -75,10 +75,10 @@ export function getTrackLink(listen) {
   return trackName;
 }
 
-export function getPlayButton(listen, onClickFunction) {
+export function getPlayButton(listen, onClickFunction, iconSize = "2x") {
   return (
     <button title="Play" className="btn-link" onClick={onClickFunction.bind(listen)}>
-      <FontAwesomeIcon size="2x" icon={faPlayCircle}/>
+      <FontAwesomeIcon size={iconSize} icon={faPlayCircle}/>
     </button>
   )
 }

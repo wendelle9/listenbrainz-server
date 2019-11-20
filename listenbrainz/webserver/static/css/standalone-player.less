@@ -83,6 +83,15 @@
 		#listens {
 			max-height:440px;
 			overflow-y: scroll;
+			.listens-table > tbody > tr > td {
+				padding: 0.1em;
+    			line-height: 1.2em;
+				&:first-child {
+					font-size: 1.2em;
+					padding: 0;
+					text-align: center;
+				}
+			}
 		}
 		.scroll-hint {
 			pointer-events: none;
