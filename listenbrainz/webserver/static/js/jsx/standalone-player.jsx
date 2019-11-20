@@ -107,15 +107,14 @@ class StandalonePlayer extends React.Component {
     const description = !!this.state.playlistMetadata && this.state.playlistMetadata.description;
 
     return (
-      <div>
-        <AlertList
-          position="bottom-right"
-          alerts={this.state.alerts}
-          timeout={15000}
-          dismissTitle="Dismiss"
-          onDismiss={this.onAlertDismissed}
-        />
         <div id="standalone-player" className={`${this.state.showBack ? 'flip':''}`}>
+          <AlertList
+            position="top-right"
+            alerts={this.state.alerts}
+            timeout={10000}
+            dismissTitle="Dismiss"
+            onDismiss={this.onAlertDismissed}
+          />
           <button className="btn btn-xs flip-button" onClick={this.onFlipButtonClick}>
             <FontAwesomeIcon icon={this.state.showBack ? faHeadphones : faList}></FontAwesomeIcon>
           </button>
@@ -188,7 +187,6 @@ class StandalonePlayer extends React.Component {
             </div>
           </div>
         </div>
-      </div>
     );
   }
 }
