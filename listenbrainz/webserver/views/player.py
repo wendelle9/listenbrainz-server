@@ -1,3 +1,4 @@
+import uuid
 import ujson
 from werkzeug.exceptions import BadRequest
 from flask import Blueprint, render_template, current_app, request
@@ -76,7 +77,7 @@ def validate_playlist(playlist):
     return recordings, metadata
 
 
-@player_bp.route("/")
+@player_bp.route("/", methods=["GET"])
 @login_required
 def load():
     """ 
@@ -84,8 +85,24 @@ def load():
         composed of recording MBIDs and have the player attempt to make the list playable.
     """
 
-    recording_mbids = request.args.get("recordings", "")
-    name = request.args.get("name", "[ unknown ]")
+    recording_mbids = request.args.get("recordings", [])
+    lookup_recordings = recording_mbids.split(",")
+    for recording in lookup_recordings:
+        try:
+            u = uuid.UUID(recording)
+        except ValueError:
+            return render_template(
+                "standalone-player.html",
+                "error" : "Cannot parse recordings argument. This page needs a comma separated list of recording MBIDs in order to play those tracks."
+            )
+
+    if len(lookup_recordings) == 0:
+        return render_template(
+            "standalone-player.html",
+            "error" : "No or an empty recordings argument was passged to this page. This page needs a comma separated list of recording MBIDs in order to play those tracks."
+        )
+
+    name = request.args.get("name", "")
     desc = request.args.get("desc", "")
     created = request.args.get("created", "")
 
