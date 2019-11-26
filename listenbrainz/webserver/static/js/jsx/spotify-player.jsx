@@ -192,19 +192,17 @@ export class SpotifyPlayer extends React.Component {
     {
       nextListenIndex = this.state.direction === "up" ? this.props.listens.length - 1 : 0;
     }
-    else if (this.state.direction === "up")
-    {
-      nextListenIndex = invert === true ? currentListenIndex + 1 : (currentListenIndex - 1 || 0);
+    switch(this.state.direction){
+      case "up":
+      case "hidden":
+      default:
+        nextListenIndex = invert === true ? currentListenIndex + 1 : (currentListenIndex - 1 || 0);
+        break;
+      case "down":
+        nextListenIndex = invert === true ? (currentListenIndex - 1 || 0) : currentListenIndex + 1;
+        break;
     }
-    else if (this.state.direction === "down")
-    {
-      nextListenIndex = invert === true ? (currentListenIndex - 1 || 0) : currentListenIndex + 1;
-    }
-    else {
-      this.handleWarning("Please select a song to play","Unrecognised state")
-      return;
-    }
-    
+
     const nextListen = this.props.listens[nextListenIndex];
     if (!nextListen)
     {
