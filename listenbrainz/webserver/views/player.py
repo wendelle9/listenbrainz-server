@@ -3,6 +3,8 @@ from werkzeug.exceptions import BadRequest
 from flask import Blueprint, render_template, current_app, request
 from flask_login import current_user, login_required
 from listenbrainz.domain import spotify
+from brainzutils.musicbrainz_db import recording as mb_rec
+from brainzutils.musicbrainz_db.exceptions import NoDataFoundException
 
 #{
 #    "name" : "My precious playlist",
@@ -93,12 +95,37 @@ def load():
         "created" : created
     }
 
-    recordings = []
-    for recording in recording_mbids.split(","):
-        recordings.append({ "track_metadata" : { "additional_info" : { "recording_mbid" : recording, "player_sources" : [] } } })
+    # lookup the metadata for posted recording ids
+    lookup_recordings = recording_mbids.split(",")
+    while True:
+        try:
+            mb_recordings = mb_rec.get_many_recordings_by_mbid(lookup_recordings, includes=["artists"])
+            break
+        except NoDataFoundException as err:
+            missing = ujson.loads(str(err)[33:].replace("'", '"'))
+            new_lookup = []
+            for rec in lookup_recordings:
+                if rec not in missing:
+                    new_lookup.append(rec)
+            lookup_recordings = new_lookup
 
-    current_app.logger.info(recordings)
-    current_app.logger.info(metadata)
+    recordings = []
+    for i, mbid in enumerate(mb_recordings.keys()):
+        armbids = [ a['id'] for a in mb_recordings[mbid]['artists'] ]
+        arnames = [ a['name'] for a in mb_recordings[mbid]['artists'] ]
+        recordings.append({
+            "track_metadata": {
+                "additional_info": {
+                    "artist_msid": "",
+                    "rating": "",
+                    "recording_mbid": mbid,
+                    "artist_mbids": armbids,
+                    "artist_names": arnames,
+                },
+                "artist_name": mb_recordings[mbid]['artists'][0]['name'],
+                "track_name": mb_recordings[mbid]['name'],
+            }
+        })
 
     user_data = {
         "id": current_user.id,
