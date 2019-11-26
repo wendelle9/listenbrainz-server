@@ -1,15 +1,17 @@
 {% extends 'base.html' %}
 
-{% if error %}
-  <div>
-    <h2>Error</h2>
-    <p>{{ error }}</p>
-  </div>
+{% if error_msg %}
+  {% block content %}
+    <div>
+      <h2>Error</h2>
+      <p>{{ error }}</p>
+    </div>
+  {% endblock %}
 {% else %}
   {% block content %}
     <div id="react-container">
     </div>
-{% endblock %}
+  {% endblock %}
 {% endif %}
 
 {% block scripts %}

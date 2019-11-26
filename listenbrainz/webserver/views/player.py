@@ -93,13 +93,13 @@ def load():
         except ValueError:
             return render_template(
                 "standalone-player.html",
-                error="Cannot parse recordings argument. This page needs a comma separated list of recording MBIDs in order to play those tracks."
+                error_msg="Cannot parse recordings argument. This page needs a comma separated list of recording MBIDs in order to play those tracks."
             )
 
     if len(lookup_recordings) == 0:
         return render_template(
             "standalone-player.html",
-            error="No or an empty recordings argument was passged to this page. This page needs a comma separated list of recording MBIDs in order to play those tracks."
+            error_msg="No or an empty recordings argument was passged to this page. This page needs a comma separated list of recording MBIDs in order to play those tracks."
         )
 
     name = request.args.get("name", "")
