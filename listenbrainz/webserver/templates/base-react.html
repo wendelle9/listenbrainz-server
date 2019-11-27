@@ -1,18 +1,16 @@
 {% extends 'base.html' %}
 
-{% if error_msg %}
-  {% block content %}
-    <div>
-      <h2>Error</h2>
-      <p>{{ error_msg }}</p>
-    </div>
-  {% endblock %}
-{% else %}
-  {% block content %}
-    <div id="react-container">
-    </div>
-  {% endblock %}
-{% endif %}
+{% block content %}
+  {% if error_msg %}
+      <div>
+        <h2>Error</h2>
+        <p>{{ error_msg }}</p>
+      </div>
+  {% else %}
+      <div id="react-container">
+      </div>
+  {% endif %}
+{% endblock %}
 
 {% block scripts %}
   {{ super() }}
