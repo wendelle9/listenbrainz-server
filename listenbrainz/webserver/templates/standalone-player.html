@@ -23,38 +23,44 @@
 </head>
 
 <body>
-
-  <div class="container">
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% for category, message in messages %}
-        {{ print_message(message, category) }}
-      {% endfor %}
-    {% endwith %}
-
-  {% if is_get_request %}
-    <form action="/player/" method="post" enctype="text/plain">
-      <div class="form-group">
-        <label for="name">Playlist name:</label>
-        <input type="text" class="form-control" id="name" placeholder="My awesome mixtape">
-      </div>
-      <div class="form-group">
-        <label for="description">Playlist description:</label>
-        <input type="text" class="form-control" id="description" placeholder="This playlist has all sorts of good tracks">
-      </div>
-      <div class="form-group">
-        <label for="recordings">Line separated list of MBIDs:</label>
-        <textarea id="recordings" class="form-control" rows="18" placeholder="145f5c43-0ac2-4886-8b09-63d0e92ded5d
-        8b09fc43-0ac2-4886-8b09-63d0e92ded5d
-        ..."></textarea>
-      </div>
-      <button type="submit" class="btn btn-primary">Play it!</button>
-    </form>
+  {% if error_msg %}
+    <div>
+      <h2>Error</h2>
+      <p>{{ error_msg }}</p>
+    </div>
   {% else %}
-    <div id="react-container">
+    <div class="container">
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+          {{ print_message(message, category) }}
+        {% endfor %}
+      {% endwith %}
+
+    {% if is_get_request %}
+      <form action="/player/" method="post" enctype="text/plain">
+        <div class="form-group">
+          <label for="name">Playlist name:</label>
+          <input type="text" class="form-control" id="name" placeholder="My awesome mixtape">
+        </div>
+        <div class="form-group">
+          <label for="description">Playlist description:</label>
+          <input type="text" class="form-control" id="description" placeholder="This playlist has all sorts of good tracks">
+        </div>
+        <div class="form-group">
+          <label for="recordings">Line separated list of MBIDs:</label>
+          <textarea id="recordings" class="form-control" rows="18" placeholder="145f5c43-0ac2-4886-8b09-63d0e92ded5d
+          8b09fc43-0ac2-4886-8b09-63d0e92ded5d
+          ..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Play it!</button>
+      </form>
+    {% else %}
+      <div id="react-container">
+      </div>
+    {% endif %}
     </div>
   {% endif %}
-  </div>
 
   {%- block scripts -%}
     <script id="react-props" type="application/json">{{ props|safe }}</script>
