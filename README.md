@@ -51,7 +51,6 @@ also build the documentation locally:
     pip install -r requirements.txt
     make clean html
 
-
 ## License Notice
 
 ```
