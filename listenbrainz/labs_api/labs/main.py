@@ -4,10 +4,12 @@ from datasethoster.main import app, register_query
 from listenbrainz.labs_api.labs.api.artist_country_from_artist_mbid import ArtistCountryFromArtistMBIDQuery
 from listenbrainz.labs_api.labs.api.artist_credit_from_artist_mbid import ArtistCreditIdFromArtistMBIDQuery
 from listenbrainz.labs_api.labs.api.artist_credit_from_artist_msid import ArtistCreditIdFromArtistMSIDQuery
+from listenbrainz.labs_api.labs.api.mapping_stats import MSBMappingStatsQuery
 from listenbrainz.webserver import load_config
 
 register_query(ArtistCountryFromArtistMBIDQuery())
 register_query(ArtistCreditIdFromArtistMBIDQuery())
 register_query(ArtistCreditIdFromArtistMSIDQuery())
+register_query(MSBMappingStatsQuery())
 
 load_config(app)
